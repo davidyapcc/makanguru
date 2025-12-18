@@ -5,6 +5,7 @@ namespace App\Services;
 use App\AI\PromptBuilder;
 use App\Contracts\AIRecommendationInterface;
 use App\DTOs\RecommendationDTO;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -81,6 +82,7 @@ class GeminiService implements AIRecommendationInterface
             }
 
             // Simple test request
+            /** @var Response $response */
             $response = Http::timeout(10)
                 ->get(self::API_ENDPOINT, ['key' => $apiKey]);
 
@@ -112,6 +114,7 @@ class GeminiService implements AIRecommendationInterface
 
         while ($attempt < self::MAX_RETRIES) {
             try {
+                /** @var Response $response */
                 $response = Http::timeout(self::TIMEOUT_SECONDS)
                     ->post(self::API_ENDPOINT . "?key={$apiKey}", [
                         'contents' => [
@@ -237,6 +240,7 @@ class GeminiService implements AIRecommendationInterface
         }
 
         try {
+            /** @var Response $response */
             $response = Http::timeout(10)
                 ->get(self::LIST_MODELS_ENDPOINT . "?key={$apiKey}");
 
