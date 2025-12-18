@@ -27,6 +27,22 @@ class Place extends Model
         'is_halal',
         'cuisine_type',
         'opening_hours',
+        // Google Maps/Places API fields
+        'google_place_id',
+        'google_maps_url',
+        'google_rating',
+        'google_rating_count',
+        'google_price_level',
+        'phone_number',
+        'website',
+        'google_photos',
+        'google_reviews',
+        'business_status',
+        'wheelchair_accessible',
+        'takeout_available',
+        'delivery_available',
+        'dine_in_available',
+        'reservations_accepted',
     ];
 
     /**
@@ -41,6 +57,16 @@ class Place extends Model
             'longitude' => 'decimal:7',
             'tags' => 'array',
             'is_halal' => 'boolean',
+            // Google Maps fields
+            'google_rating' => 'decimal:1',
+            'google_rating_count' => 'integer',
+            'google_photos' => 'array',
+            'google_reviews' => 'array',
+            'wheelchair_accessible' => 'boolean',
+            'takeout_available' => 'boolean',
+            'delivery_available' => 'boolean',
+            'dine_in_available' => 'boolean',
+            'reservations_accepted' => 'boolean',
         ];
     }
 
@@ -129,6 +155,52 @@ class Place extends Model
     public function scopeByCuisine(Builder $query, string $cuisineType): Builder
     {
         return $query->where('cuisine_type', 'LIKE', "%{$cuisineType}%");
+    }
+
+    /**
+     * Scope a query to filter places by minimum Google rating.
+     *
+     * @param Builder $query
+     * @param float $minRating
+     * @return Builder
+     */
+    public function scopeMinRating(Builder $query, float $minRating): Builder
+    {
+        return $query->where('google_rating', '>=', $minRating);
+    }
+
+    /**
+     * Scope a query to filter operational places only.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeOperational(Builder $query): Builder
+    {
+        return $query->where('business_status', 'OPERATIONAL');
+    }
+
+    /**
+     * Scope a query to filter places with specific service options.
+     *
+     * @param Builder $query
+     * @param bool $takeout
+     * @param bool $delivery
+     * @param bool $dineIn
+     * @return Builder
+     */
+    public function scopeWithServices(Builder $query, bool $takeout = false, bool $delivery = false, bool $dineIn = false): Builder
+    {
+        if ($takeout) {
+            $query->where('takeout_available', true);
+        }
+        if ($delivery) {
+            $query->where('delivery_available', true);
+        }
+        if ($dineIn) {
+            $query->where('dine_in_available', true);
+        }
+        return $query;
     }
 
     /**

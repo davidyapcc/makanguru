@@ -6,6 +6,7 @@ use App\Contracts\AIRecommendationInterface;
 use App\Models\Place;
 use App\Services\GeminiService;
 use App\Services\GroqService;
+use App\Services\PlaceCacheService;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -185,24 +186,18 @@ class ChatInterface extends Component
 
     /**
      * Get filtered places based on current filter settings.
+     * Uses Redis caching to reduce database load.
      */
     private function getFilteredPlaces(): \Illuminate\Support\Collection
     {
-        $query = Place::query();
+        $cacheService = app(PlaceCacheService::class);
 
-        if ($this->filterHalal) {
-            $query->halalOnly();
-        }
-
-        if ($this->filterPrice) {
-            $query->byPrice($this->filterPrice);
-        }
-
-        if ($this->filterArea) {
-            $query->inArea($this->filterArea);
-        }
-
-        return $query->get();
+        return $cacheService->getPlaces(
+            halalOnly: $this->filterHalal,
+            price: $this->filterPrice,
+            area: $this->filterArea,
+            tags: []
+        );
     }
 
     /**
