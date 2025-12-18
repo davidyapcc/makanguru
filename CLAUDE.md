@@ -294,11 +294,13 @@ Place::withTags(['nasi lemak'])->first();
 
 4. **API Integration**
    - ✅ Gemini 2.5 Flash API integration (v1 endpoint)
-   - ✅ Retry logic with exponential backoff
+   - ✅ Model fallback system (4 models: gemini-2.5-flash, gemini-2.0-flash, gemini-2.5-flash-lite, gemini-2.0-flash-lite)
+   - ✅ Rate limit detection and automatic model switching
+   - ✅ Retry logic with exponential backoff (2 retries per model)
    - ✅ Comprehensive error handling with graceful fallback
    - ✅ Safety settings configuration (all 4 categories)
-   - ✅ Enhanced logging (finish reasons, token usage)
-   - ✅ Output limit: 1000 tokens for complete responses
+   - ✅ Enhanced logging (model used, finish reasons, token usage)
+   - ✅ Output limit: 10000 tokens for complete responses
 
 5. **Testing & Commands**
    - ✅ Created `tests/Unit/GeminiServiceTest.php` - 9 tests, 28 assertions
@@ -593,14 +595,20 @@ Use the `gemini:list-models` command to discover available models.
 ### Response Handling
 - Extract text from `candidates[0].content.parts[0].text`
 - Check `finishReason` (should be "STOP" for successful completion)
-- Implement exponential backoff for rate limits (2 retries max)
-- Log all API calls with token usage for debugging
+- **Model Fallback System**: Automatically tries alternative models when rate limits are hit
+  - Primary: `gemini-2.5-flash`
+  - Fallback 1: `gemini-2.0-flash`
+  - Fallback 2: `gemini-2.5-flash-lite`
+  - Fallback 3: `gemini-2.0-flash-lite`
+- Implement exponential backoff for rate limits (2 retries per model)
+- Detect rate limit errors via HTTP 429 or error messages containing "quota", "rate limit", "too many requests", "RESOURCE_EXHAUSTED"
+- Log all API calls with model name and token usage for debugging
 - Return persona-specific fallback response on failure
 
 ### Token Limits
-- **Input**: Up to 1M tokens (context window)
-- **Output**: 1000 tokens (configured limit)
-- **Cost**: $0.075 per 1M input tokens, $0.30 per 1M output tokens
+- **Input**: Up to 1M tokens (context window for gemini-2.5-flash)
+- **Output**: 10000 tokens (configured limit)
+- **Cost**: $0.075 per 1M input tokens, $0.30 per 1M output tokens (gemini-2.5-flash pricing)
 
 ---
 
@@ -616,18 +624,26 @@ models/gemini-1.5-flash is not found for API version v1beta
 ```
 
 **Solution:**
-The gemini-1.5-flash model has been deprecated. Use gemini-2.5-flash instead with the v1 endpoint.
+The gemini-1.5-flash model has been deprecated. The system now uses a model fallback array with multiple models.
 
 In `app/Services/GeminiService.php`:
 ```php
 // ❌ Old (deprecated):
 private const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-// ✅ New (current):
-private const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
+// ✅ New (current with fallback):
+private const BASE_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models';
+private const FALLBACK_MODELS = [
+    'gemini-2.5-flash',      // Primary
+    'gemini-2.0-flash',      // Fallback 1
+    'gemini-2.5-flash-lite', // Fallback 2
+    'gemini-2.0-flash-lite', // Fallback 3
+];
 ```
 
 Run `php artisan gemini:list-models` to see all available models.
+
+The system will automatically try each model in sequence when rate limits are encountered.
 
 **2. Truncated AI Responses**
 
@@ -639,7 +655,7 @@ Increase `maxOutputTokens` in the generation config:
 ```php
 'generationConfig' => [
     'temperature' => 0.9,
-    'maxOutputTokens' => 1000,  // Increased from 500
+    'maxOutputTokens' => 10000,  // Current setting
     'topP' => 0.95,
 ]
 ```
@@ -684,7 +700,28 @@ php artisan tinker
 >>> app(GeminiService::class)->healthCheck()
 ```
 
-**8. Safety Settings Blocking Content**
+**8. Rate Limit Errors (429)**
+
+**Symptom:**
+```
+Gemini API returned 429: Too Many Requests
+```
+
+**Solution:**
+The model fallback system automatically handles rate limits. Check logs to see which models are being used:
+```bash
+tail -f storage/logs/laravel.log | grep "Gemini API"
+```
+
+You should see logs like:
+```
+Rate limit hit for model gemini-2.5-flash, trying next model
+Gemini API Success {"model":"gemini-2.0-flash",...}
+```
+
+If all 4 models are rate-limited, the system will return a graceful fallback response. Wait a few minutes and try again.
+
+**9. Safety Settings Blocking Content**
 
 If responses are being blocked, check the `finishReason` in logs:
 ```bash
@@ -725,10 +762,12 @@ Look for `finishReason` other than "STOP". All 4 safety categories should be set
 - Token usage tracking and cost estimation
 
 **API Configuration:**
-- Model: gemini-2.5-flash (latest stable)
+- Model Fallback System: 4 models (gemini-2.5-flash → gemini-2.0-flash → gemini-2.5-flash-lite → gemini-2.0-flash-lite)
+- Primary Model: gemini-2.5-flash (latest stable)
 - Endpoint: v1 (not v1beta)
-- Max Output Tokens: 1000
-- Retry Logic: Exponential backoff (2 max retries)
+- Max Output Tokens: 10000
+- Retry Logic: Exponential backoff (2 retries per model)
+- Rate Limit Handling: Automatic model switching on 429 errors
 - Safety Settings: All 4 categories configured
 
 **Testing Commands:**

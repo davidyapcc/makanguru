@@ -275,11 +275,14 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
     * Helper methods: `isFallback()`, `getTokensUsed()`.
 
 * [x] **API Integration**
-    * Gemini 2.5 Flash API integration with retry logic (exponential backoff).
+    * Gemini 2.5 Flash API integration with model fallback system.
+    * 4 fallback models: gemini-2.5-flash → gemini-2.0-flash → gemini-2.5-flash-lite → gemini-2.0-flash-lite.
+    * Automatic rate limit detection and model switching (HTTP 429 handling).
+    * Retry logic with exponential backoff (2 retries per model).
     * Comprehensive error handling with graceful fallback responses.
     * Safety settings configuration (all 4 categories).
-    * Enhanced logging for debugging (finish reasons, token usage).
-    * Output limit: 1000 tokens for complete responses.
+    * Enhanced logging for debugging (model used, finish reasons, token usage).
+    * Output limit: 10000 tokens for complete responses.
 
 * [x] **Testing & Commands**
     * Created `tests/Unit/GeminiServiceTest.php` - 9 tests, 28 assertions ✅
