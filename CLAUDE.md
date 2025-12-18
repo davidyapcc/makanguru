@@ -35,10 +35,15 @@ Unlike traditional directory apps (Google Maps/Yelp), MakanGuru uses **AI Person
 - **Interactivity**: Alpine.js (micro-interactions)
 
 ### AI Integration
-- **Provider**: Google Gemini 2.5 Flash (latest stable model)
+- **Primary Provider**: Google Gemini 2.5 Flash (latest stable model)
+- **Alternative Providers**:
+  - Groq (OpenAI GPT via Groq Cloud)
+  - Groq (Meta Llama via Groq Cloud)
 - **Method**: REST API (context injection pattern)
-- **API Version**: v1 (stable endpoint)
-- **Fallback**: Error handling with graceful degradation
+- **API Versions**:
+  - Gemini: v1 (stable endpoint)
+  - Groq: OpenAI-compatible v1 endpoint
+- **Fallback**: Multi-model fallback with graceful degradation
 
 ### Infrastructure (Planned)
 - **Hosting**: AWS EC2 (Ubuntu 24.04)
@@ -319,19 +324,22 @@ app/
 ├── Contracts/
 │   └── AIRecommendationInterface.php ✅
 ├── Services/
-│   └── GeminiService.php ✅
+│   ├── GeminiService.php ✅
+│   └── GroqService.php ✅ (Groq integration)
 ├── AI/
 │   └── PromptBuilder.php ✅
 ├── DTOs/
-│   └── RecommendationDTO.php ✅
+│   └── RecommendationDTO.php ✅ (extended with fromGroqResponse)
 ├── Providers/
-│   └── AIServiceProvider.php ✅
+│   └── AIServiceProvider.php ✅ (supports multiple providers)
 └── Console/Commands/
-    ├── AskMakanGuruCommand.php ✅
-    └── ListGeminiModelsCommand.php ✅
+    ├── AskMakanGuruCommand.php ✅ (multi-model support)
+    ├── ListGeminiModelsCommand.php ✅
+    └── ListGroqModelsCommand.php ✅ (Groq models)
 
 tests/Unit/
-└── GeminiServiceTest.php ✅
+├── GeminiServiceTest.php ✅
+└── GroqServiceTest.php ✅ (Groq service tests)
 
 database/factories/
 └── PlaceFactory.php ✅
@@ -512,13 +520,28 @@ package.json ✅
 
 ## Environment Variables
 
-### Required for Phase 2
+### Required for AI Integration
 ```ini
-# Add to .env
+# Google Gemini AI Configuration
+# Get your API key from: https://ai.google.dev/
 GEMINI_API_KEY=your_api_key_here
+
+# Groq AI Configuration (Optional - for alternative models)
+# Get your API key from: https://console.groq.com/
+GROQ_API_KEY=your_groq_api_key_here
+
+# Optional: Set default AI provider (gemini|groq)
+AI_PROVIDER=gemini
+
+# Optional: Groq model configuration
+GROQ_OPENAI_MODEL=openai/gpt-oss-120b
+GROQ_META_MODEL=llama-3.3-70b-versatile
+GROQ_DEFAULT_MODEL=llama-3.1-8b-instant
 ```
 
-Get API key from: https://ai.google.dev/
+Get API keys from:
+- Gemini: https://ai.google.dev/
+- Groq: https://console.groq.com/
 
 ### Database Configuration (Current)
 ```ini
@@ -613,6 +636,120 @@ Use the `gemini:list-models` command to discover available models.
 - **Input**: Up to 1M tokens (context window for gemini-2.5-flash)
 - **Output**: 10000 tokens (configured limit)
 - **Cost**: $0.075 per 1M input tokens, $0.30 per 1M output tokens (gemini-2.5-flash pricing)
+
+---
+
+## Groq API Integration (Alternative Provider)
+
+### Overview
+Groq provides ultra-fast inference for open-source models (Llama, Mixtral) and OpenAI models via their custom LPU™ (Language Processing Unit) infrastructure. MakanGuru supports Groq as an alternative to Gemini.
+
+### Supported Models
+- **OpenAI GPT**: `openai/gpt-oss-120b` (via Groq)
+- **Meta Llama 3.3**: `llama-3.3-70b-versatile` (70B parameters, 8K context)
+- **Meta Llama 3.1**: `llama-3.1-8b-instant` (8B parameters, fast inference)
+
+### Groq Chat Completions Endpoint
+```
+POST https://api.groq.com/openai/v1/chat/completions
+Authorization: Bearer YOUR_GROQ_API_KEY
+```
+
+### Request Format (OpenAI-Compatible)
+```json
+{
+  "model": "llama-3.3-70b-versatile",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant providing restaurant recommendations."
+    },
+    {
+      "role": "user",
+      "content": "Where can I get spicy food in PJ?"
+    }
+  ],
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "top_p": 1
+}
+```
+
+### Response Format
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "content": "Bro, for spicy food in PJ..."
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 150,
+    "completion_tokens": 50,
+    "total_tokens": 200
+  },
+  "model": "llama-3.3-70b-versatile"
+}
+```
+
+### Model Fallback System (Groq)
+Automatically tries alternative models when rate limits are hit:
+1. Primary: User-selected model (e.g., `llama-3.3-70b-versatile`)
+2. Fallback 1: `llama-3.1-8b-instant`
+3. Fallback 2: `openai/gpt-oss-120b`
+4. Fallback 3: `openai/gpt-oss-20b`
+
+### Groq Pricing (as of December 2024)
+| Model | Input Cost (per 1M tokens) | Output Cost (per 1M tokens) |
+|-------|---------------------------|----------------------------|
+| llama-3.3-70b-versatile | $0.59 | $0.79 |
+| llama-3.1-8b-instant | $0.05 | $0.08 |
+| openai/gpt-oss-120b | $0.80 | $1.20 |
+| openai/gpt-oss-20b | $0.20 | $0.30 |
+
+**Note**: Groq is significantly faster than traditional cloud providers due to LPU architecture.
+
+### CLI Commands for Groq
+```bash
+# List all available Groq models
+php artisan groq:list-models
+
+# Filter models
+php artisan groq:list-models --filter="llama"
+
+# JSON output
+php artisan groq:list-models --json
+
+# Test with Groq
+php artisan makanguru:ask "Where to get nasi lemak?" --model=groq-meta --persona=gymbro
+php artisan makanguru:ask "Instagram-worthy cafe" --model=groq-openai --persona=atas
+```
+
+### Switching Between Providers
+
+**In Code (Dynamic)**:
+```php
+// In ChatInterface or Commands
+$service = match ($this->currentModel) {
+    'groq-openai', 'groq-meta' => app(GroqService::class),
+    default => app(GeminiService::class),
+};
+
+// Set specific Groq model
+if ($service instanceof GroqService) {
+    $service->setModel('llama-3.3-70b-versatile');
+}
+```
+
+**In UI**:
+Users can switch between AI providers using the Model Selector component in the chat interface.
+
+**In Environment**:
+```ini
+AI_PROVIDER=groq  # Default to Groq instead of Gemini
+```
 
 ---
 
@@ -733,6 +870,73 @@ tail -f storage/logs/laravel.log
 ```
 
 Look for `finishReason` other than "STOP". All 4 safety categories should be set to `BLOCK_NONE` for food recommendations.
+
+**10. Groq API Key Not Configured**
+
+**Symptom:**
+```
+Groq API key not configured. Set GROQ_API_KEY in .env
+```
+
+**Solution:**
+```bash
+# Add to .env file
+GROQ_API_KEY=your_groq_api_key_here
+
+# Test API key validity
+php artisan tinker
+>>> app(GroqService::class)->healthCheck()
+```
+
+Get your Groq API key from: https://console.groq.com/
+
+**11. Groq Model Not Available**
+
+**Symptom:**
+Model selector shows "SOON" badge or model is disabled in UI.
+
+**Solution:**
+The model selector automatically detects API key availability. If Groq models show as "coming-soon":
+1. Ensure `GROQ_API_KEY` is set in `.env`
+2. Clear config cache: `php artisan config:clear`
+3. Refresh the page
+
+**12. Groq Rate Limits**
+
+**Symptom:**
+```
+Groq API returned 429: Rate limit exceeded
+```
+
+**Solution:**
+Groq has generous free tier limits but can still hit rate limits:
+- **Free Tier**: 30 requests/minute, 14,400 requests/day
+- **Paid Tier**: Higher limits based on plan
+
+The system automatically falls back to alternative Groq models. Check logs:
+```bash
+tail -f storage/logs/laravel.log | grep "Groq"
+```
+
+**13. Comparing Groq vs Gemini Performance**
+
+Use cost estimation to compare:
+```bash
+php artisan tinker
+
+# Gemini cost (example: 1000 input, 500 output tokens)
+>>> GeminiService::estimateCost(1000, 500)
+# Output: 0.000225 USD
+
+# Groq Llama cost (same tokens)
+>>> GroqService::estimateCost(1000, 500, 'llama-3.3-70b-versatile')
+# Output: 0.000985 USD
+
+# Groq is ~4.4x more expensive than Gemini for this model
+# But Llama 3.1 8B instant is cheaper:
+>>> GroqService::estimateCost(1000, 500, 'llama-3.1-8b-instant')
+# Output: 0.000090 USD (cheaper than Gemini!)
+```
 
 ---
 

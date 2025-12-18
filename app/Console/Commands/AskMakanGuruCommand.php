@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Contracts\AIRecommendationInterface;
 use App\Models\Place;
+use App\Services\GeminiService;
+use App\Services\GroqService;
 use Illuminate\Console\Command;
 
 class AskMakanGuruCommand extends Command
@@ -16,6 +18,7 @@ class AskMakanGuruCommand extends Command
     protected $signature = 'makanguru:ask
                             {query : Your food query (e.g., "I want nasi lemak in Damansara")}
                             {--persona=makcik : The AI persona to use (makcik|gymbro|atas)}
+                            {--model=gemini : The AI model to use (gemini|groq-openai|groq-meta)}
                             {--area= : Optional: Filter by area}
                             {--halal : Optional: Only show halal places}
                             {--price= : Optional: Filter by price (budget|moderate|expensive)}';
@@ -30,10 +33,11 @@ class AskMakanGuruCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(AIRecommendationInterface $aiService): int
+    public function handle(): int
     {
         $query = $this->argument('query');
         $persona = $this->option('persona');
+        $model = $this->option('model');
 
         // Validate persona
         if (!in_array($persona, ['makcik', 'gymbro', 'atas'])) {
@@ -41,8 +45,17 @@ class AskMakanGuruCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("🍜 Asking {$persona} about: {$query}");
+        // Validate model
+        if (!in_array($model, ['gemini', 'groq-openai', 'groq-meta'])) {
+            $this->error("Invalid model '{$model}'. Must be: gemini, groq-openai, or groq-meta");
+            return self::FAILURE;
+        }
+
+        $this->info("🍜 Asking {$persona} (using {$model}) about: {$query}");
         $this->newLine();
+
+        // Resolve the AI service
+        $aiService = $this->getAiService($model);
 
         // Build query based on filters
         $placesQuery = Place::query();
@@ -103,5 +116,31 @@ class AskMakanGuruCommand extends Command
             $this->error('Failed to get recommendation: ' . $e->getMessage());
             return self::FAILURE;
         }
+    }
+
+    /**
+     * Get the AI service based on the selected model.
+     *
+     * @param string $model
+     * @return AIRecommendationInterface
+     */
+    private function getAiService(string $model): AIRecommendationInterface
+    {
+        $service = match ($model) {
+            'groq-openai', 'groq-meta' => app(GroqService::class),
+            default => app(GeminiService::class),
+        };
+
+        // If it's Groq, we can set the specific model based on selection
+        if ($service instanceof GroqService) {
+            $specificModel = match ($model) {
+                'groq-openai' => config('services.groq.models.openai'),
+                'groq-meta' => config('services.groq.models.meta'),
+                default => config('services.groq.models.default'),
+            };
+            $service->setModel($specificModel);
+        }
+
+        return $service;
     }
 }

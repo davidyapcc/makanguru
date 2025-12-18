@@ -39,4 +39,13 @@ return [
         'api_key' => env('GEMINI_API_KEY'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'models' => [
+            'openai' => env('GROQ_OPENAI_MODEL', 'openai/gpt-oss-120b'),
+            'meta' => env('GROQ_META_MODEL', 'llama-3.3-70b-versatile'),
+            'default' => env('GROQ_DEFAULT_MODEL', 'llama-3.1-8b-instant'),
+        ],
+    ],
+
 ];

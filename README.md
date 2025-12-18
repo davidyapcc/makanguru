@@ -25,7 +25,9 @@ Built on a modern, monolithic architecture optimized for speed and developer exp
 * **Framework:** [Laravel 12](https://laravel.com) (PHP 8.4)
 * **Frontend:** [Livewire 3](https://livewire.laravel.com) + [Tailwind CSS](https://tailwindcss.com) + Alpine.js
 * **Database:** MySQL 8.0
-* **AI Engine:** Google Gemini 1.5 Flash (via REST API)
+* **AI Engines:**
+  * Google Gemini 2.5 Flash (primary)
+  * Groq (Meta Llama 3.3, OpenAI GPT) (alternative)
 * **Queue/Cache:** Redis
 * **Infrastructure:** AWS EC2 (Ubuntu 24.04), Nginx
 
@@ -115,9 +117,16 @@ DB_DATABASE=makanguru
 DB_USERNAME=root
 DB_PASSWORD=
 
-# Get this from Google AI Studio
-GEMINI_API_KEY=your_api_key_here
+# Google Gemini AI (Required)
+# Get your API key from: https://ai.google.dev/
+GEMINI_API_KEY=your_gemini_api_key_here
 
+# Groq AI (Optional - for alternative models)
+# Get your API key from: https://console.groq.com/
+GROQ_API_KEY=your_groq_api_key_here
+
+# Optional: Set default AI provider (gemini|groq)
+AI_PROVIDER=gemini
 ```
 
 
@@ -148,7 +157,20 @@ npm run dev
 You can test the AI integration directly via Artisan command without using the UI:
 
 ```bash
+# Test with default model (Gemini)
 php artisan makanguru:ask "I want nasi lemak in Damansara" --persona="makcik"
+
+# Test with Groq (Meta Llama)
+php artisan makanguru:ask "Where to get spicy food?" --model=groq-meta --persona=gymbro
+
+# Test with Groq (OpenAI GPT)
+php artisan makanguru:ask "Instagram-worthy cafe" --model=groq-openai --persona=atas
+
+# List available Groq models
+php artisan groq:list-models
+
+# List available Gemini models
+php artisan gemini:list-models
 ```
 
 ---
@@ -175,9 +197,11 @@ npm run dev
    - 💅 **Atas Friend** - Aesthetic, upscale, Instagram-worthy
 
 2. **Select AI Model** - Choose your preferred AI provider:
-   - 🤖 **Gemini** (Google) - Currently active
-   - 🧠 **GPT** (OpenAI via Groq) - Coming soon
-   - 🦙 **Llama** (Meta via Groq) - Coming soon
+   - 🤖 **Gemini** (Google) - Fast and cost-effective
+   - 🧠 **GPT** (OpenAI via Groq) - High-quality responses
+   - 🦙 **Llama** (Meta via Groq) - Ultra-fast inference
+
+   *Note: Groq models require GROQ_API_KEY in .env*
 
 3. **Apply Filters** (Optional):
    - ✓ Halal Only
@@ -372,9 +396,11 @@ php artisan migrate:fresh --seed   # Reset database with seed data
 php artisan tinker                  # REPL for testing queries
 
 # Testing
-php artisan test                                        # Run all tests
-php artisan makanguru:ask "your question" --persona=makcik   # CLI test
-php artisan gemini:list-models                          # List AI models
+php artisan test                                                 # Run all tests
+php artisan makanguru:ask "your question" --persona=makcik      # CLI test (Gemini)
+php artisan makanguru:ask "your question" --model=groq-meta     # CLI test (Groq Llama)
+php artisan gemini:list-models                                   # List Gemini models
+php artisan groq:list-models                                     # List Groq models
 
 # Code Generation
 php artisan make:livewire ComponentName    # Create Livewire component
@@ -386,9 +412,15 @@ php artisan make:test TestName --unit      # Create unit test
 ```
 app/
 ├── Livewire/ChatInterface.php          # Main chat component
-├── Services/GeminiService.php          # AI integration
+├── Services/
+│   ├── GeminiService.php               # Gemini AI integration
+│   └── GroqService.php                 # Groq AI integration
 ├── AI/PromptBuilder.php                # Persona prompt engineering
 ├── DTOs/RecommendationDTO.php          # Data transfer object
+├── Console/Commands/
+│   ├── AskMakanGuruCommand.php         # CLI testing tool
+│   ├── ListGeminiModelsCommand.php     # List Gemini models
+│   └── ListGroqModelsCommand.php       # List Groq models
 └── Models/Place.php                    # Restaurant model
 
 resources/views/
@@ -410,9 +442,9 @@ database/seeders/PlaceSeeder.php        # 15 restaurant records
 
 - **Backend:** Laravel 12, PHP 8.4
 - **Frontend:** Livewire 3, Tailwind CSS v4, Alpine.js
-- **AI:** Google Gemini 2.5 Flash
+- **AI:** Google Gemini 2.5 Flash, Groq (Meta Llama, OpenAI GPT)
 - **Database:** SQLite (local), MySQL (production)
-- **Testing:** PHPUnit
+- **Testing:** PHPUnit (25 tests, 60 assertions)
 
 ### Current Status
 

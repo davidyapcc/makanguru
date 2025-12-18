@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\AI\PromptBuilder;
 use App\Contracts\AIRecommendationInterface;
 use App\Services\GeminiService;
+use App\Services\GroqService;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -25,12 +26,24 @@ class AIServiceProvider extends ServiceProvider
             return new PromptBuilder();
         });
 
-        // Bind the AIRecommendationInterface to GeminiService
-        // This allows us to swap implementations without changing consumer code
+        // Register concrete implementations
+        $this->app->singleton(GeminiService::class, function ($app) {
+            return new GeminiService($app->make(PromptBuilder::class));
+        });
+
+        $this->app->singleton(GroqService::class, function ($app) {
+            return new GroqService($app->make(PromptBuilder::class));
+        });
+
+        // Bind the AIRecommendationInterface based on configuration
+        // This remains for backward compatibility or default usage
         $this->app->bind(AIRecommendationInterface::class, function ($app) {
-            return new GeminiService(
-                $app->make(PromptBuilder::class)
-            );
+            $provider = env('AI_PROVIDER', 'gemini');
+
+            return match ($provider) {
+                'groq' => $app->make(GroqService::class),
+                default => $app->make(GeminiService::class),
+            };
         });
     }
 

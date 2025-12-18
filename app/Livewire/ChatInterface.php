@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Contracts\AIRecommendationInterface;
 use App\Models\Place;
+use App\Services\GeminiService;
+use App\Services\GroqService;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -15,11 +17,6 @@ use Livewire\Component;
  */
 class ChatInterface extends Component
 {
-    /**
-     * The AI recommendation service.
-     */
-    private AIRecommendationInterface $aiService;
-
     /**
      * User's current query input.
      */
@@ -63,11 +60,26 @@ class ChatInterface extends Component
     public bool $isLoading = false;
 
     /**
-     * Boot the component with dependency injection.
+     * Get the AI service based on current model.
      */
-    public function boot(AIRecommendationInterface $aiService): void
+    private function getAiService(): AIRecommendationInterface
     {
-        $this->aiService = $aiService;
+        $service = match ($this->currentModel) {
+            'groq-openai', 'groq-meta' => app(GroqService::class),
+            default => app(GeminiService::class),
+        };
+
+        // If it's Groq, we can set the specific model based on selection
+        if ($service instanceof GroqService) {
+            $model = match ($this->currentModel) {
+                'groq-openai' => config('services.groq.models.openai'),
+                'groq-meta' => config('services.groq.models.meta'),
+                default => config('services.groq.models.default'),
+            };
+            $service->setModel($model);
+        }
+
+        return $service;
     }
 
     /**
@@ -92,12 +104,20 @@ class ChatInterface extends Component
         // Set loading state
         $this->isLoading = true;
 
+        // Resolve service dynamically
+        $aiService = $this->getAiService();
+
+        logger()->info('ChatInterface: Using AI service', [
+            'model' => $this->currentModel,
+            'service' => get_class($aiService)
+        ]);
+
         try {
             // Get filtered places based on current filters
             $places = $this->getFilteredPlaces();
 
             // Get AI recommendation
-            $recommendation = $this->aiService->recommend(
+            $recommendation = $aiService->recommend(
                 $this->userQuery,
                 $this->currentPersona,
                 $places

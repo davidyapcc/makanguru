@@ -36,15 +36,39 @@ class RecommendationDTO implements Arrayable
      */
     public static function fromGeminiResponse(array $apiResponse, string $persona): self
     {
-        $recommendation = $apiResponse['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        $recommendation = trim($apiResponse['candidates'][0]['content']['parts'][0]['text'] ?? '');
 
         // Extract suggested places from the recommendation text (if AI mentions specific names)
         $suggestedPlaces = self::extractPlaceNames($recommendation);
 
         $metadata = [
             'tokens_used' => $apiResponse['usageMetadata']['totalTokenCount'] ?? 0,
-            'model' => 'gemini-2.5-flash',
+            'model' => $apiResponse['_model_used'] ?? 'gemini-2.5-flash',
             'timestamp' => now()->toIso8601String(),
+        ];
+
+        return new self($recommendation, $persona, $suggestedPlaces, $metadata);
+    }
+
+    /**
+     * Create DTO from Groq (OpenAI-compatible) API response.
+     *
+     * @param array<string, mixed> $apiResponse
+     * @param string $persona
+     * @return self
+     */
+    public static function fromGroqResponse(array $apiResponse, string $persona): self
+    {
+        $recommendation = trim($apiResponse['choices'][0]['message']['content'] ?? '');
+
+        // Extract suggested places from the recommendation text
+        $suggestedPlaces = self::extractPlaceNames($recommendation);
+
+        $metadata = [
+            'tokens_used' => $apiResponse['usage']['total_tokens'] ?? 0,
+            'model' => $apiResponse['model'] ?? 'unknown',
+            'timestamp' => now()->toIso8601String(),
+            'provider' => 'groq',
         ];
 
         return new self($recommendation, $persona, $suggestedPlaces, $metadata);

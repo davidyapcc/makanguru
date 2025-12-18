@@ -134,9 +134,7 @@
                         :role="$message['role']"
                         :persona="$message['persona'] ?? $currentPersona"
                         :isFallback="$message['is_fallback'] ?? false"
-                    >
-                        {{ $message['content'] }}
-                    </x-chat-bubble>
+                    >{{ $message['content'] }}</x-chat-bubble>
                 </div>
             @endforeach
         @endif

@@ -1,27 +1,31 @@
 @props(['currentModel' => 'gemini'])
 
 @php
+    // Check API key availability to determine model status
+    $geminiAvailable = !empty(config('services.gemini.api_key'));
+    $groqAvailable = !empty(config('services.groq.api_key'));
+
     $models = [
         'gemini' => [
             'name' => 'Gemini',
             'provider' => 'Google',
             'icon' => '🤖',
             'color' => 'from-blue-500 to-blue-600',
-            'status' => 'active',
+            'status' => $geminiAvailable ? 'active' : 'coming-soon',
         ],
         'groq-openai' => [
             'name' => 'GPT',
             'provider' => 'OpenAI via Groq',
             'icon' => '🧠',
             'color' => 'from-green-500 to-green-600',
-            'status' => 'coming-soon',
+            'status' => $groqAvailable ? 'active' : 'coming-soon',
         ],
         'groq-meta' => [
             'name' => 'Llama',
             'provider' => 'Meta via Groq',
             'icon' => '🦙',
             'color' => 'from-purple-500 to-purple-600',
-            'status' => 'coming-soon',
+            'status' => $groqAvailable ? 'active' : 'coming-soon',
         ],
     ];
 @endphp

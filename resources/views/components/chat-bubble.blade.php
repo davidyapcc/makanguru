@@ -43,9 +43,7 @@
                     </div>
                 @endif
 
-                <div class="text-sm leading-relaxed whitespace-pre-wrap">
-                    {{ $slot }}
-                </div>
+                <div class="text-sm leading-relaxed whitespace-pre-wrap">{{ $slot }}</div>
             </div>
         </div>
 
