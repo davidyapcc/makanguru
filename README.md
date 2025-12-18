@@ -149,17 +149,59 @@ You can test the AI integration directly via Artisan command without using the U
 
 ```bash
 php artisan makanguru:ask "I want nasi lemak in Damansara" --persona="makcik"
-
 ```
+
+---
+
+## 🎯 Using the Web Interface
+
+**Start the application:**
+
+```bash
+# Terminal 1: Start backend server
+php artisan serve
+
+# Terminal 2: Start frontend dev server (for asset hot-reload)
+npm run dev
+```
+
+**Visit:** http://127.0.0.1:8000
+
+**Features:**
+
+1. **Choose Your AI Guide** - Select from 3 personas:
+   - 👵 **Mak Cik** - Value-focused, halal-conscious, nurturing
+   - 💪 **Gym Bro** - Protein-heavy, efficiency-focused
+   - 💅 **Atas Friend** - Aesthetic, upscale, Instagram-worthy
+
+2. **Apply Filters** (Optional):
+   - ✓ Halal Only
+   - Price Range: Budget / Moderate / Expensive
+   - Area: e.g., "Bangsar", "KLCC", "Petaling Jaya"
+
+3. **Ask Questions**:
+   - "Where to get spicy food in PJ?"
+   - "I want halal breakfast near KLCC"
+   - "Instagram-worthy cafe with good coffee"
+   - "Cheap nasi lemak in Damansara"
+
+4. **Interact**:
+   - Chat history saved during session
+   - Switch personas mid-conversation
+   - Clear chat to start fresh
+   - Real-time loading indicators
 
 ---
 
 ## 🗺 High Level Roadmap
 
-* [x] **Phase 1:** Core RAG Architecture & Manual Seeding. ✅
-* [ ] **Phase 2:** Integration with OpenStreetMap (Overpass API) for broader data coverage.
-* [ ] **Phase 3:** "Share Your Vibe" – Generate a shareable card for social media.
-* [ ] **Phase 4:** User submissions (Community-led data).
+* [x] **Phase 1:** Foundation & Data Layer ✅
+* [x] **Phase 2:** AI Service Layer & Prompt Engineering ✅
+* [x] **Phase 3:** Modern UI/UX with Livewire 3 ✅
+* [ ] **Phase 4:** Production Deployment (AWS, Redis, Nginx)
+* [ ] **Phase 5:** OpenStreetMap Integration for broader data coverage
+* [ ] **Phase 6:** "Share Your Vibe" – Generate shareable social media cards
+* [ ] **Phase 7:** User submissions (Community-led data)
 
 ---
 
@@ -251,24 +293,38 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
 
 ---
 
-### **Phase 3: Modern UI/UX (Days 5-7)**
+### **Phase 3: Modern UI/UX** ✅ COMPLETE
 
 *Goal: Build a "Thumb-Friendly" Mobile-First Interface using Livewire 3.*
 
-* [ ] **Layout & Design System**
-    * Design the main layout (`resources/views/components/layouts/app.blade.php`).
-    * **Task:** Define the color palette (e.g., "Sambal Red", "Teh Tarik Brown") in `tailwind.config.js`.
-    * **Task:** Create reusable Blade components: `<x-chat-bubble>`, `<x-restaurant-card>`, `<x-loading-spinner>`.
+* [x] **Layout & Design System**
+    * Designed the main layout (`resources/views/components/layouts/app.blade.php`).
+    * Malaysian color palette already defined in `resources/css/app.css`.
+    * Created reusable Blade components: `<x-chat-bubble>`, `<x-restaurant-card>`, `<x-loading-spinner>`, `<x-persona-switcher>`.
 
-* [ ] **Livewire Components**
-    * Create `App\Livewire\ChatInterface`.
-    * **Task:** Implement properties: `$userQuery`, `$chatHistory`, `$currentPersona`.
-    * **Task:** Implement action `sendMessage()`.
+* [x] **Livewire Components**
+    * Created `App\Livewire\ChatInterface` with full state management.
+    * Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$filterHalal`, `$filterPrice`, `$filterArea`, `$isLoading`.
+    * Implemented actions: `sendMessage()`, `switchPersona()`, `clearChat()`.
+    * Added type-safe validation with PHP 8.4 attributes.
+    * Integrated `AIRecommendationInterface` via dependency injection.
 
-* [ ] **UX Polish (Micro-interactions)**
-    * **Task:** Use `wire:loading` to show a "Thinking..." state (e.g., "Mak Cik is putting on her spectacles...").
-    * **Task:** Use Alpine.js to auto-scroll to the bottom of the chat when a new message arrives.
-    * **Task:** Implement a "Persona Switcher" toggle (Slide over UI).
+* [x] **UX Polish (Micro-interactions)**
+    * Implemented `wire:loading` with persona-specific "Thinking..." states:
+        * Mak Cik: "Mak Cik is putting on her spectacles..."
+        * Gym Bro: "Bro is thinking... loading the gains..."
+        * Atas Friend: "Darling, let me consult my notes..."
+    * Alpine.js micro-interactions (built-in via Livewire 3 - no separate installation needed).
+    * Auto-scroll to bottom of chat when new message arrives using Alpine.js `x-init` and `x-ref`.
+    * Implemented persona switcher with 3-column grid layout and visual feedback.
+    * Added smooth fadeIn animations for chat bubbles (defined in `resources/css/app.css`).
+    * Real-time filters with `wire:model.live` for Halal, Price, and Area.
+    * Enter key to send message (Shift+Enter for new line) using Livewire 3 compatible syntax.
+    * Clear chat functionality with confirmation dialog.
+    * Blue send button matching user message bubble color.
+    * Optimized chat container spacing (reduced top padding).
+    * Fixed user message bubble display with `space-x-reverse`.
+    * Removed duplicate Alpine.js initialization (55% smaller JS bundle: 36.35 kB).
 
 ---
 
@@ -286,6 +342,72 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
 
 * [ ] **CI/CD (Optional/Bonus)**
     * Create a simple GitHub Action to run tests (`php artisan test`) on push.
+
+---
+
+## 📋 Quick Reference
+
+### Key Commands
+
+```bash
+# Development
+php artisan serve              # Start backend server
+npm run dev                    # Start frontend dev server (hot reload)
+npm run build                  # Build for production
+
+# Database
+php artisan migrate:fresh --seed   # Reset database with seed data
+php artisan tinker                  # REPL for testing queries
+
+# Testing
+php artisan test                                        # Run all tests
+php artisan makanguru:ask "your question" --persona=makcik   # CLI test
+php artisan gemini:list-models                          # List AI models
+
+# Code Generation
+php artisan make:livewire ComponentName    # Create Livewire component
+php artisan make:test TestName --unit      # Create unit test
+```
+
+### Project Structure
+
+```
+app/
+├── Livewire/ChatInterface.php          # Main chat component
+├── Services/GeminiService.php          # AI integration
+├── AI/PromptBuilder.php                # Persona prompt engineering
+├── DTOs/RecommendationDTO.php          # Data transfer object
+└── Models/Place.php                    # Restaurant model
+
+resources/views/
+├── components/
+│   ├── chat-bubble.blade.php           # Message bubble
+│   ├── loading-spinner.blade.php       # Loading indicator
+│   ├── persona-switcher.blade.php      # Persona selector
+│   └── layouts/app.blade.php           # Main layout
+└── livewire/chat-interface.blade.php   # Chat UI
+
+resources/
+├── css/app.css                         # Tailwind + Malaysian colors
+└── js/app.js                           # Alpine.js config
+
+database/seeders/PlaceSeeder.php        # 15 restaurant records
+```
+
+### Tech Stack at a Glance
+
+- **Backend:** Laravel 12, PHP 8.4
+- **Frontend:** Livewire 3, Tailwind CSS v4, Alpine.js
+- **AI:** Google Gemini 2.5 Flash
+- **Database:** SQLite (local), MySQL (production)
+- **Testing:** PHPUnit
+
+### Current Status
+
+✅ **Phase 1:** Foundation & Data Layer
+✅ **Phase 2:** AI Service Layer
+✅ **Phase 3:** Modern UI/UX
+⏳ **Phase 4:** Production Deployment (Next)
 
 ---
 

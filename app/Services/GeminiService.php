@@ -18,8 +18,9 @@ use Illuminate\Support\Facades\Log;
  */
 class GeminiService implements AIRecommendationInterface
 {
-    private const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
-    private const LIST_MODELS_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models';
+    // private const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
+    private const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    private const LIST_MODELS_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
     private const TIMEOUT_SECONDS = 30;
     private const MAX_RETRIES = 2;
 
@@ -127,7 +128,7 @@ class GeminiService implements AIRecommendationInterface
                         ],
                         'generationConfig' => [
                             'temperature' => 0.9,
-                            'maxOutputTokens' => 1000,
+                            'maxOutputTokens' => 10000,
                             'topP' => 0.95,
                         ],
                         'safetySettings' => [
