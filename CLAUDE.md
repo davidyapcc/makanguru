@@ -346,15 +346,17 @@ database/factories/
 1. **Livewire 3 Chat Interface**
    - ✅ Installed Livewire 3.7.2
    - ✅ Created `ChatInterface` component with full state management
-   - ✅ Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$filterHalal`, `$filterPrice`, `$filterArea`
+   - ✅ Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$currentModel`, `$filterHalal`, `$filterPrice`, `$filterArea`
    - ✅ Dependency injection for `AIRecommendationInterface`
    - ✅ Type-safe validation with PHP 8.4 attributes
+   - ✅ Model switching functionality with `switchModel()` method
 
 2. **Reusable Blade Components**
    - ✅ `chat-bubble.blade.php` - Dynamic message bubbles with persona avatars
    - ✅ `loading-spinner.blade.php` - Persona-specific typing indicators
    - ✅ `restaurant-card.blade.php` - Place information display
    - ✅ `persona-switcher.blade.php` - Three-persona selection interface
+   - ✅ `model-selector.blade.php` - AI model/provider selection interface
    - ✅ `layouts/app.blade.php` - Main application layout
 
 3. **Alpine.js Micro-Interactions**
@@ -365,12 +367,14 @@ database/factories/
 
 4. **UI/UX Features**
    - ✅ Mobile-first responsive design
+   - ✅ Model selector with 3 AI providers (Gemini active, OpenAI/Meta via Groq coming soon)
    - ✅ Real-time filters (Halal, Price, Area) with `wire:model.live`
    - ✅ Loading states with `wire:loading`
    - ✅ Enter key to send (Shift+Enter for new line)
    - ✅ Clear chat with confirmation dialog
    - ✅ Malaysian color palette gradients
    - ✅ Persona-specific fallback messages
+   - ✅ Model tracking in chat history
 
 5. **Routes & Views**
    - ✅ Updated `routes/web.php` to serve chat interface
@@ -784,11 +788,16 @@ php artisan test
   - `loading-spinner` - Persona-specific loading states
   - `restaurant-card` - Place display component
   - `persona-switcher` - Three persona selection UI
+  - `model-selector` - AI model/provider selection (Gemini, OpenAI via Groq, Meta via Groq)
 - Alpine.js micro-interactions (built-in via Livewire 3):
   - Auto-scroll to latest message
   - Smooth fadeIn animations for chat bubbles
+- Model selection with future Groq integration support:
+  - Currently active: Google Gemini
+  - Coming soon: OpenAI GPT via Groq, Meta Llama via Groq
+  - Visual status indicators and disabled state for unreleased models
 - Responsive filters (Halal, Price, Area)
-- Real-time chat history management
+- Real-time chat history management with model tracking
 - Enter key to send (Shift+Enter for new line)
 - Clear chat functionality with confirmation
 - Malaysian-themed design with gradient backgrounds
@@ -806,7 +815,8 @@ resources/views/
 │   ├── chat-bubble.blade.php ✅
 │   ├── loading-spinner.blade.php ✅
 │   ├── restaurant-card.blade.php ✅
-│   └── persona-switcher.blade.php ✅
+│   ├── persona-switcher.blade.php ✅
+│   └── model-selector.blade.php ✅
 ├── livewire/
 │   └── chat-interface.blade.php ✅
 └── home.blade.php ✅

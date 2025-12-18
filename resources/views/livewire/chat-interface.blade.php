@@ -15,6 +15,9 @@
     <!-- Persona Switcher -->
     <x-persona-switcher :currentPersona="$currentPersona" />
 
+    <!-- Model Selector -->
+    <x-model-selector :currentModel="$currentModel" />
+
     <!-- Filters Bar (Optional) -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-4">
         <div class="flex flex-wrap gap-3 items-center">

@@ -32,6 +32,11 @@ class ChatInterface extends Component
     public string $currentPersona = 'makcik';
 
     /**
+     * Current AI model/provider (gemini|groq-openai|groq-meta).
+     */
+    public string $currentModel = 'gemini';
+
+    /**
      * Chat history array.
      * Each item: ['role' => 'user|assistant', 'content' => string, 'persona' => string]
      */
@@ -81,6 +86,7 @@ class ChatInterface extends Component
             'role' => 'user',
             'content' => $this->userQuery,
             'persona' => $this->currentPersona,
+            'model' => $this->currentModel,
         ];
 
         // Set loading state
@@ -102,6 +108,7 @@ class ChatInterface extends Component
                 'role' => 'assistant',
                 'content' => $recommendation->recommendation,
                 'persona' => $this->currentPersona,
+                'model' => $this->currentModel,
                 'is_fallback' => $recommendation->isFallback(),
             ];
         } catch (\Exception $e) {
@@ -110,6 +117,7 @@ class ChatInterface extends Component
                 'role' => 'assistant',
                 'content' => $this->getFallbackMessage($this->currentPersona),
                 'persona' => $this->currentPersona,
+                'model' => $this->currentModel,
                 'is_fallback' => true,
             ];
 
@@ -133,6 +141,16 @@ class ChatInterface extends Component
     {
         if (in_array($persona, ['makcik', 'gymbro', 'atas'])) {
             $this->currentPersona = $persona;
+        }
+    }
+
+    /**
+     * Switch to a different AI model/provider.
+     */
+    public function switchModel(string $model): void
+    {
+        if (in_array($model, ['gemini', 'groq-openai', 'groq-meta'])) {
+            $this->currentModel = $model;
         }
     }
 

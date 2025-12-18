@@ -174,20 +174,26 @@ npm run dev
    - 💪 **Gym Bro** - Protein-heavy, efficiency-focused
    - 💅 **Atas Friend** - Aesthetic, upscale, Instagram-worthy
 
-2. **Apply Filters** (Optional):
+2. **Select AI Model** - Choose your preferred AI provider:
+   - 🤖 **Gemini** (Google) - Currently active
+   - 🧠 **GPT** (OpenAI via Groq) - Coming soon
+   - 🦙 **Llama** (Meta via Groq) - Coming soon
+
+3. **Apply Filters** (Optional):
    - ✓ Halal Only
    - Price Range: Budget / Moderate / Expensive
    - Area: e.g., "Bangsar", "KLCC", "Petaling Jaya"
 
-3. **Ask Questions**:
+4. **Ask Questions**:
    - "Where to get spicy food in PJ?"
    - "I want halal breakfast near KLCC"
    - "Instagram-worthy cafe with good coffee"
    - "Cheap nasi lemak in Damansara"
 
-4. **Interact**:
+5. **Interact**:
    - Chat history saved during session
    - Switch personas mid-conversation
+   - Switch AI models (when available)
    - Clear chat to start fresh
    - Real-time loading indicators
 
@@ -303,14 +309,15 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
 * [x] **Layout & Design System**
     * Designed the main layout (`resources/views/components/layouts/app.blade.php`).
     * Malaysian color palette already defined in `resources/css/app.css`.
-    * Created reusable Blade components: `<x-chat-bubble>`, `<x-restaurant-card>`, `<x-loading-spinner>`, `<x-persona-switcher>`.
+    * Created reusable Blade components: `<x-chat-bubble>`, `<x-restaurant-card>`, `<x-loading-spinner>`, `<x-persona-switcher>`, `<x-model-selector>`.
 
 * [x] **Livewire Components**
     * Created `App\Livewire\ChatInterface` with full state management.
-    * Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$filterHalal`, `$filterPrice`, `$filterArea`, `$isLoading`.
-    * Implemented actions: `sendMessage()`, `switchPersona()`, `clearChat()`.
+    * Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$currentModel`, `$filterHalal`, `$filterPrice`, `$filterArea`, `$isLoading`.
+    * Implemented actions: `sendMessage()`, `switchPersona()`, `switchModel()`, `clearChat()`.
     * Added type-safe validation with PHP 8.4 attributes.
     * Integrated `AIRecommendationInterface` via dependency injection.
+    * Model tracking in chat history for each message.
 
 * [x] **UX Polish (Micro-interactions)**
     * Implemented `wire:loading` with persona-specific "Thinking..." states:
@@ -320,6 +327,8 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
     * Alpine.js micro-interactions (built-in via Livewire 3 - no separate installation needed).
     * Auto-scroll to bottom of chat when new message arrives using Alpine.js `x-init` and `x-ref`.
     * Implemented persona switcher with 3-column grid layout and visual feedback.
+    * Implemented model selector with 3 AI providers (Gemini active, OpenAI/Meta via Groq coming soon).
+    * Visual status indicators ("SOON" badges) for unreleased AI models.
     * Added smooth fadeIn animations for chat bubbles (defined in `resources/css/app.css`).
     * Real-time filters with `wire:model.live` for Halal, Price, and Area.
     * Enter key to send message (Shift+Enter for new line) using Livewire 3 compatible syntax.
