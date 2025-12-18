@@ -19,48 +19,80 @@
     <x-model-selector :currentModel="$currentModel" />
 
     <!-- Filters Bar (Optional) -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-4">
-        <div class="flex flex-wrap gap-3 items-center">
-            <div class="text-xs font-semibold text-gray-700">Filters:</div>
+    <div
+        x-data="{ open: false }"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden"
+    >
+        <div
+            @click="open = !open"
+            class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+            <div class="flex items-center space-x-2">
+                <div class="text-xs font-semibold text-gray-700">Filters:</div>
+                <div class="flex items-center gap-2">
+                    @if($filterHalal)
+                        <span class="px-1.5 py-0.5 bg-green-100 text-[10px] text-green-700 rounded-full font-medium">Halal</span>
+                    @endif
+                    @if($filterPrice)
+                        <span class="px-1.5 py-0.5 bg-red-100 text-[10px] text-red-700 rounded-full font-medium">{{ ucfirst($filterPrice) }}</span>
+                    @endif
+                    @if($filterArea)
+                        <span class="px-1.5 py-0.5 bg-blue-100 text-[10px] text-blue-700 rounded-full font-medium">{{ $filterArea }}</span>
+                    @endif
+                </div>
+            </div>
+            <svg
+                class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                :class="open ? 'rotate-180' : ''"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>
 
-            <!-- Halal Filter -->
-            <label class="flex items-center space-x-2 cursor-pointer">
+        <div x-show="open" x-transition class="p-3 pt-0">
+            <div class="flex flex-wrap gap-3 items-center">
+                <!-- Halal Filter -->
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        wire:model.live="filterHalal"
+                        class="w-4 h-4 text-[--color-pandan-green] border-gray-300 rounded focus:ring-[--color-pandan-green]"
+                    >
+                    <span class="text-xs text-gray-700">Halal Only</span>
+                </label>
+
+                <!-- Price Filter -->
+                <select
+                    wire:model.live="filterPrice"
+                    class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sambal-red] focus:border-[--color-sambal-red]"
+                >
+                    <option value="">Any Price</option>
+                    <option value="budget">Budget (RM 10-20)</option>
+                    <option value="moderate">Moderate (RM 20-50)</option>
+                    <option value="expensive">Expensive (RM 50+)</option>
+                </select>
+
+                <!-- Area Filter -->
                 <input
-                    type="checkbox"
-                    wire:model.live="filterHalal"
-                    class="w-4 h-4 text-[--color-pandan-green] border-gray-300 rounded focus:ring-[--color-pandan-green]"
+                    type="text"
+                    wire:model.live="filterArea"
+                    placeholder="Area (e.g., Bangsar)"
+                    class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sambal-red] focus:border-[--color-sambal-red] px-3 py-1"
                 >
-                <span class="text-xs text-gray-700">Halal Only</span>
-            </label>
 
-            <!-- Price Filter -->
-            <select
-                wire:model.live="filterPrice"
-                class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sambal-red] focus:border-[--color-sambal-red]"
-            >
-                <option value="">Any Price</option>
-                <option value="budget">Budget (RM 10-20)</option>
-                <option value="moderate">Moderate (RM 20-50)</option>
-                <option value="expensive">Expensive (RM 50+)</option>
-            </select>
-
-            <!-- Area Filter -->
-            <input
-                type="text"
-                wire:model.live="filterArea"
-                placeholder="Area (e.g., Bangsar)"
-                class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sambal-red] focus:border-[--color-sambal-red] px-3 py-1"
-            >
-
-            <!-- Clear Filters -->
-            @if($filterHalal || $filterPrice || $filterArea)
-                <button
-                    wire:click="$set('filterHalal', false); $set('filterPrice', null); $set('filterArea', null)"
-                    class="text-xs text-[--color-sambal-red] hover:underline"
-                >
-                    Clear All
-                </button>
-            @endif
+                <!-- Clear Filters -->
+                @if($filterHalal || $filterPrice || $filterArea)
+                    <button
+                        wire:click="$set('filterHalal', false); $set('filterPrice', null); $set('filterArea', null)"
+                        class="text-xs text-[--color-sambal-red] hover:underline"
+                    >
+                        Clear All
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -73,7 +105,7 @@
     >
         @if(empty($chatHistory))
             <!-- Welcome Message -->
-            <div class="text-center py-12">
+            <div class="text-center pt-4 pb-2">
                 <div class="text-6xl mb-4">🍜</div>
                 <h2 class="text-2xl font-bold text-[--color-teh-tarik-brown] mb-2">
                     Makan Mana?

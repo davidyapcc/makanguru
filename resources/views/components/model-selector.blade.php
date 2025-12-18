@@ -26,15 +26,33 @@
     ];
 @endphp
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-4">
-    <div class="flex items-center justify-between mb-2">
-        <div class="text-xs font-semibold text-gray-700">AI Model:</div>
-        <div class="text-xs text-gray-500">
-            Currently: <span class="font-medium text-[--color-sky-blue]">{{ $models[$currentModel]['provider'] }}</span>
+<div
+    x-data="{ open: false }"
+    class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden"
+>
+    <div
+        @click="open = !open"
+        class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+    >
+        <div class="flex items-center space-x-2">
+            <div class="text-xs font-semibold text-gray-700">AI Model:</div>
+            <div class="text-xs text-gray-500">
+                Currently: <span class="font-medium text-[--color-sky-blue]">{{ $models[$currentModel]['provider'] }}</span>
+            </div>
         </div>
+        <svg
+            class="w-4 h-4 text-gray-400 transition-transform duration-200"
+            :class="open ? 'rotate-180' : ''"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+        >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
     </div>
 
-    <div class="grid grid-cols-3 gap-2">
+    <div x-show="open" x-transition class="p-3 pt-0">
+        <div class="grid grid-cols-3 gap-2">
         @foreach($models as $modelKey => $model)
             <button
                 wire:click="switchModel('{{ $modelKey }}')"
@@ -47,9 +65,10 @@
             >
                 <!-- Status Badge -->
                 @if($model['status'] === 'coming-soon')
-                    <div class="absolute -top-2 -right-2 bg-amber-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+                    <div class="absolute -top-2 -right-2 bg-amber-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-20">
                         SOON
                     </div>
+                    <div class="absolute inset-0 bg-black/5 rounded-lg z-10"></div>
                 @endif
 
                 <!-- Icon -->
@@ -68,4 +87,5 @@
             </button>
         @endforeach
     </div>
+</div>
 </div>
