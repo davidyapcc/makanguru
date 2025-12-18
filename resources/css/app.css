@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Malaysian-inspired Color Palette */
+    --color-sambal-red: #DC2626;
+    --color-sambal-red-dark: #991B1B;
+    --color-teh-tarik-brown: #92400E;
+    --color-teh-tarik-brown-light: #D97706;
+    --color-nasi-lemak-cream: #FEF3C7;
+    --color-pandan-green: #059669;
+    --color-pandan-green-light: #10B981;
+    --color-rendang-brown: #78350F;
+    --color-sky-blue: #3B82F6;
+    --color-sky-blue-light: #60A5FA;
+
+    /* Spacing for mobile-first */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+}

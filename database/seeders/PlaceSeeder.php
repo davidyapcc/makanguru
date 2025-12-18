@@ -1,0 +1,223 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Place;
+use Illuminate\Database\Seeder;
+
+class PlaceSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Golden Records - Famous Malaysian Eateries
+        $goldenRecords = [
+            [
+                'name' => 'Village Park Restaurant',
+                'description' => 'Legendary nasi lemak spot, famous for crispy fried chicken and sambal that will make you sweat.',
+                'address' => '5, Jalan SS 21/37, Damansara Utama, 47400 Petaling Jaya, Selangor',
+                'area' => 'Damansara Utama',
+                'latitude' => 3.1351,
+                'longitude' => 101.6215,
+                'price' => 'budget',
+                'tags' => ['nasi lemak', 'local', 'breakfast', 'famous'],
+                'is_halal' => true,
+                'cuisine_type' => 'Malaysian',
+                'opening_hours' => '7:00 AM - 3:00 PM',
+            ],
+            [
+                'name' => 'Jalan Alor Food Street',
+                'description' => 'Iconic KL street food haven with endless hawker stalls. Go hungry, leave broke but happy.',
+                'address' => 'Jalan Alor, Bukit Bintang, 50200 Kuala Lumpur',
+                'area' => 'Bukit Bintang',
+                'latitude' => 3.1466,
+                'longitude' => 101.7072,
+                'price' => 'moderate',
+                'tags' => ['street food', 'variety', 'night market', 'tourist-friendly'],
+                'is_halal' => false,
+                'cuisine_type' => 'Malaysian, Chinese',
+                'opening_hours' => '5:00 PM - 4:00 AM',
+            ],
+            [
+                'name' => 'Restoran Yusoof Dan Zakhir',
+                'description' => 'The OG of briyani in KL. Fragrant rice, tender meat, and a line that never ends.',
+                'address' => '1, Jalan Tun H S Lee, City Centre, 50050 Kuala Lumpur',
+                'area' => 'Pudu',
+                'latitude' => 3.1419,
+                'longitude' => 101.6961,
+                'price' => 'budget',
+                'tags' => ['briyani', 'indian', 'halal', 'local favorite'],
+                'is_halal' => true,
+                'cuisine_type' => 'Indian',
+                'opening_hours' => '11:00 AM - 11:00 PM',
+            ],
+            [
+                'name' => 'Kim Lian Kee Restaurant',
+                'description' => 'Hokkien mee that slaps. Charcoal-fried perfection with a side of nostalgia.',
+                'address' => '34, Jalan Petaling, City Centre, 50000 Kuala Lumpur',
+                'area' => 'Petaling Street',
+                'latitude' => 3.1431,
+                'longitude' => 101.6966,
+                'price' => 'budget',
+                'tags' => ['hokkien mee', 'chinese', 'local', 'heritage'],
+                'is_halal' => false,
+                'cuisine_type' => 'Chinese',
+                'opening_hours' => '5:00 PM - 2:00 AM',
+            ],
+            [
+                'name' => 'The Owls Cafe',
+                'description' => 'Hipster minimalist cafe. Overpriced oat milk latte but your Instagram will thank you.',
+                'address' => '23, Jalan Telawi 3, Bangsar, 59100 Kuala Lumpur',
+                'area' => 'Bangsar',
+                'latitude' => 3.1296,
+                'longitude' => 101.6714,
+                'price' => 'expensive',
+                'tags' => ['cafe', 'aesthetic', 'instagram-worthy', 'brunch'],
+                'is_halal' => false,
+                'cuisine_type' => 'Western, Fusion',
+                'opening_hours' => '8:00 AM - 10:00 PM',
+            ],
+        ];
+
+        // Dummy Records for Testing
+        $dummyRecords = [
+            [
+                'name' => 'Warung Pak Mat',
+                'description' => 'No-frills Malay food. Tastes like your mak masak.',
+                'address' => 'Jalan Gasing, Petaling Jaya, Selangor',
+                'area' => 'Petaling Jaya',
+                'latitude' => 3.1000,
+                'longitude' => 101.6500,
+                'price' => 'budget',
+                'tags' => ['nasi campur', 'malay', 'local'],
+                'is_halal' => true,
+                'cuisine_type' => 'Malay',
+                'opening_hours' => '7:00 AM - 5:00 PM',
+            ],
+            [
+                'name' => 'Gym Bro Bowl',
+                'description' => 'High protein, low carb. Gains and flavor coexist here.',
+                'address' => 'Jalan Telawi, Bangsar, Kuala Lumpur',
+                'area' => 'Bangsar',
+                'latitude' => 3.1300,
+                'longitude' => 101.6720,
+                'price' => 'moderate',
+                'tags' => ['healthy', 'protein', 'gym-friendly', 'bowl'],
+                'is_halal' => false,
+                'cuisine_type' => 'Healthy, Western',
+                'opening_hours' => '10:00 AM - 9:00 PM',
+            ],
+            [
+                'name' => 'Kedai Mamak Satu Malaysia',
+                'description' => 'The 24/7 savior. Roti canai at 3 AM hits different.',
+                'address' => 'Jalan SS15, Subang Jaya, Selangor',
+                'area' => 'Subang Jaya',
+                'latitude' => 3.0738,
+                'longitude' => 101.5878,
+                'price' => 'budget',
+                'tags' => ['mamak', 'roti canai', '24/7', 'supper'],
+                'is_halal' => true,
+                'cuisine_type' => 'Indian-Muslim',
+                'opening_hours' => '24 hours',
+            ],
+            [
+                'name' => 'Fancy Pants Bistro',
+                'description' => 'Where your wallet cries but your taste buds sing opera.',
+                'address' => 'Pavilion KL, Bukit Bintang, Kuala Lumpur',
+                'area' => 'Bukit Bintang',
+                'latitude' => 3.1498,
+                'longitude' => 101.7129,
+                'price' => 'expensive',
+                'tags' => ['fine dining', 'atas', 'date night', 'western'],
+                'is_halal' => false,
+                'cuisine_type' => 'Western, Fine Dining',
+                'opening_hours' => '12:00 PM - 11:00 PM',
+            ],
+            [
+                'name' => 'Aunty Lim Char Kuey Teow',
+                'description' => 'Wok hei so strong it might cure your hangover. Cash only.',
+                'address' => 'Jalan Imbi, Kuala Lumpur',
+                'area' => 'Imbi',
+                'latitude' => 3.1453,
+                'longitude' => 101.7069,
+                'price' => 'budget',
+                'tags' => ['char kuey teow', 'chinese', 'wok hei', 'street food'],
+                'is_halal' => false,
+                'cuisine_type' => 'Chinese',
+                'opening_hours' => '5:00 PM - 11:00 PM',
+            ],
+            [
+                'name' => 'Protein Shack',
+                'description' => 'Meal prep central. Bodybuilders approved.',
+                'address' => 'Jalan PJU 1A, Ara Damansara, Petaling Jaya',
+                'area' => 'Ara Damansara',
+                'latitude' => 3.1118,
+                'longitude' => 101.5814,
+                'price' => 'moderate',
+                'tags' => ['healthy', 'protein', 'meal prep', 'clean eating'],
+                'is_halal' => true,
+                'cuisine_type' => 'Healthy',
+                'opening_hours' => '11:00 AM - 9:00 PM',
+            ],
+            [
+                'name' => 'Restoran Sup Tulang ZZ',
+                'description' => 'Spicy bone marrow soup that will clear your sinuses. Bring tissues.',
+                'address' => 'Jalan Klang Lama, Kuala Lumpur',
+                'area' => 'Old Klang Road',
+                'latitude' => 3.0979,
+                'longitude' => 101.6797,
+                'price' => 'budget',
+                'tags' => ['sup tulang', 'spicy', 'malay', 'supper'],
+                'is_halal' => true,
+                'cuisine_type' => 'Malay',
+                'opening_hours' => '6:00 PM - 3:00 AM',
+            ],
+            [
+                'name' => 'Artisan Coffee Lab',
+                'description' => 'Single origin beans, pretentious baristas, excellent coffee.',
+                'address' => 'Jalan Mesui, KLCC, Kuala Lumpur',
+                'area' => 'KLCC',
+                'latitude' => 3.1578,
+                'longitude' => 101.7123,
+                'price' => 'expensive',
+                'tags' => ['coffee', 'specialty', 'aesthetic', 'workspace'],
+                'is_halal' => false,
+                'cuisine_type' => 'Cafe',
+                'opening_hours' => '8:00 AM - 8:00 PM',
+            ],
+            [
+                'name' => 'Uncle Wong Bak Kut Teh',
+                'description' => 'Herbal pork soup that grandma swears can cure anything.',
+                'address' => 'Jalan Klang Baru, Klang, Selangor',
+                'area' => 'Klang',
+                'latitude' => 3.0333,
+                'longitude' => 101.4444,
+                'price' => 'budget',
+                'tags' => ['bak kut teh', 'chinese', 'pork', 'traditional'],
+                'is_halal' => false,
+                'cuisine_type' => 'Chinese',
+                'opening_hours' => '7:00 AM - 3:00 PM',
+            ],
+            [
+                'name' => 'Salad Stop',
+                'description' => 'Overpriced leaves but you feel healthy. Balance restored.',
+                'address' => 'Sunway Pyramid, Bandar Sunway, Selangor',
+                'area' => 'Sunway',
+                'latitude' => 3.0733,
+                'longitude' => 101.6074,
+                'price' => 'moderate',
+                'tags' => ['salad', 'healthy', 'vegetarian options', 'quick'],
+                'is_halal' => false,
+                'cuisine_type' => 'Healthy, Western',
+                'opening_hours' => '10:00 AM - 10:00 PM',
+            ],
+        ];
+
+        // Insert all records
+        foreach (array_merge($goldenRecords, $dummyRecords) as $place) {
+            Place::create($place);
+        }
+    }
+}
