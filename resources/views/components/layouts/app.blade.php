@@ -21,8 +21,16 @@
                         MakanGuru
                     </h1>
                 </div>
-                <div class="text-sm text-gray-600">
-                    Where to makan?
+                <div class="flex items-center space-x-4">
+                    <a href="/restaurants" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
+                        🍽️ Restaurants
+                    </a>
+                    <a href="/scraper" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
+                        🌐 Scraper
+                    </a>
+                    <div class="text-sm text-gray-600">
+                        Where to makan?
+                    </div>
                 </div>
             </div>
         </div>

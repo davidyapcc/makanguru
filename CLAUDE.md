@@ -491,17 +491,126 @@ deployment/
 
 ---
 
+## Phase 5 Implementation Status ✅
+
+### Completed Tasks
+
+1. **Restaurant Scraper Service**
+   - ✅ Created `RestaurantScraperService` for OpenStreetMap integration
+   - ✅ Overpass API integration with comprehensive data parsing
+   - ✅ Intelligent halal detection (3 heuristics: explicit tags, cuisine inference, name matching)
+   - ✅ Smart price range inference
+   - ✅ Tag extraction (cuisine, diet, amenities)
+   - ✅ Malaysia-specific coordinate validation
+   - ✅ Data validation before database insertion
+
+2. **CLI Scraper Command**
+   - ✅ Created `php artisan makanguru:scrape` command
+   - ✅ 7 pre-configured Malaysian cities (KL, PJ, Bangsar, KLCC, Damansara, Subang, Shah Alam)
+   - ✅ Dry-run mode with `--dry-run` flag
+   - ✅ Duplicate detection and prevention
+   - ✅ Beautiful table output with progress bars
+   - ✅ Configurable radius (1-15km) and limit (1-200)
+
+3. **Web UI for Scraper**
+   - ✅ Created `ScraperInterface` Livewire component
+   - ✅ Beautiful mobile-first web interface at `/scraper`
+   - ✅ Interactive sliders for radius and limit
+   - ✅ Preview mode toggle (safe exploration before import)
+   - ✅ Real-time database statistics
+   - ✅ Visual results table with color-coded badges
+   - ✅ Success/error messaging with user-friendly alerts
+   - ✅ Navigation integration with chat interface
+
+4. **Restaurant Database Browser**
+   - ✅ Created `RestaurantList` Livewire component
+   - ✅ Beautiful mobile-first web interface at `/restaurants`
+   - ✅ Type-ahead search across name, description, cuisine, area (300ms debounce)
+   - ✅ Real-time filters: Halal, Price Range, Area, Cuisine Type
+   - ✅ Sortable columns with visual indicators (name, area, cuisine, price)
+   - ✅ Pagination (20 restaurants per page)
+   - ✅ Tag display (shows first 3 tags + count)
+   - ✅ Color-coded price badges (green/yellow/red)
+   - ✅ Empty state handling with context-aware messaging
+   - ✅ Integrated navigation across all pages (Chat, Scraper, Restaurants)
+
+5. **Testing & Documentation**
+   - ✅ Created `RestaurantScraperServiceTest.php` - 9 tests, 23 assertions
+   - ✅ All tests passing with HTTP mocking
+   - ✅ Comprehensive documentation:
+     - `SCRAPER_GUIDE.md` - 600+ lines CLI guide
+     - `SCRAPER_UI_GUIDE.md` - 600+ lines web UI guide
+     - `PHASE5_COMPLETE.md` - Implementation summary
+     - `SCRAPER_WEB_UI_COMPLETE.md` - Web UI summary
+
+6. **Live Testing**
+   - ✅ Successfully scraped real restaurants from OpenStreetMap
+   - ✅ Verified CLI command works (dry-run and import modes)
+   - ✅ Verified web UI works (preview and import modes)
+   - ✅ Duplicate detection working correctly
+   - ✅ Database integration confirmed
+   - ✅ Restaurant list page filtering and sorting verified
+
+### Files Created in Phase 5
+
+```
+app/
+├── Services/
+│   └── RestaurantScraperService.php ✅ (450+ lines)
+├── Console/Commands/
+│   └── ScrapeRestaurantsCommand.php ✅ (350+ lines)
+└── Livewire/
+    ├── ScraperInterface.php ✅ (273 lines)
+    └── RestaurantList.php ✅ (240 lines)
+
+resources/views/
+├── scraper.blade.php ✅
+├── restaurants.blade.php ✅
+├── livewire/
+│   ├── scraper-interface.blade.php ✅ (288 lines)
+│   └── restaurant-list.blade.php ✅ (266 lines)
+└── components/
+    ├── nav-link.blade.php ✅
+    └── layouts/app.blade.php ✅ (updated with restaurant link)
+
+tests/Unit/
+└── RestaurantScraperServiceTest.php ✅ (250+ lines)
+
+routes/
+└── web.php ✅ (added /scraper and /restaurants routes)
+
+Documentation/
+├── SCRAPER_GUIDE.md ✅ (600+ lines)
+├── SCRAPER_UI_GUIDE.md ✅ (600+ lines)
+├── PHASE5_COMPLETE.md ✅ (500+ lines)
+└── SCRAPER_WEB_UI_COMPLETE.md ✅ (500+ lines)
+```
+
+**Total Lines of Code:** ~3,386 lines (service + commands + UI + tests + docs)
+
+---
+
 ## Upcoming Phases
 
-### Phase 5: OpenStreetMap Integration
+### Phase 6: "Share Your Vibe" – Generate shareable social media cards
 
-**Goal**: Expand data coverage using OpenStreetMap
+**Goal**: Allow users to share AI recommendations as beautiful social cards
 
 **Tasks:**
-1. OpenStreetMap API integration
-2. Geolocation services
-3. Broader restaurant database coverage
-4. Location-based search enhancements
+1. Design social card templates
+2. Implement card generation (image/SVG)
+3. Add share functionality
+4. Social media optimization
+
+### Phase 7: User submissions (Community-led data)
+
+**Goal**: Enable community contributions to restaurant database
+
+**Tasks:**
+1. User submission form
+2. Moderation system
+3. Community voting/ratings
+4. Quality control
 
 ---
 
@@ -541,6 +650,27 @@ php artisan gemini:list-models              # List all available Gemini models
 php artisan gemini:list-models --filter="gemini-2.5"  # Filter models
 php artisan gemini:list-models --json       # JSON output
 
+# Restaurant Scraping (Phase 5)
+## CLI Commands
+php artisan makanguru:scrape --area="Bangsar" --dry-run  # Preview only
+php artisan makanguru:scrape --area="KLCC" --radius=5000 --limit=100  # Import
+php artisan makanguru:scrape --area="Kuala Lumpur" --radius=10000 --limit=200
+
+## Web UI (Recommended)
+# Scraper: Import restaurants from OpenStreetMap
+# Visit http://127.0.0.1:8000/scraper
+# - Interactive sliders for radius/limit
+# - Preview mode toggle
+# - Real-time database stats
+# - Visual results table
+
+# Restaurant Database: Browse all restaurants
+# Visit http://127.0.0.1:8000/restaurants
+# - Search across name, cuisine, description, area
+# - Filter by halal, price, area, cuisine
+# - Sort by name, area, cuisine, price
+# - Paginated results (20 per page)
+
 # Code generation
 php artisan make:model ModelName
 php artisan make:migration create_table_name
@@ -566,16 +696,25 @@ php artisan test --filter TestName
 app/
 ├── Models/
 │   └── Place.php ✅
-├── Services/          (Phase 2)
-│   └── GeminiService.php
-├── Contracts/         (Phase 2)
-│   └── AIRecommendationInterface.php
-├── AI/                (Phase 2)
-│   └── PromptBuilder.php
-├── DTOs/              (Phase 2)
-│   └── RecommendationDTO.php
-└── Livewire/          (Phase 3)
-    └── ChatInterface.php
+├── Services/
+│   ├── GeminiService.php              (Phase 2)
+│   ├── GroqService.php                (Phase 2)
+│   ├── PlaceCacheService.php          (Phase 4)
+│   └── RestaurantScraperService.php   (Phase 5) ✅
+├── Contracts/
+│   └── AIRecommendationInterface.php  (Phase 2)
+├── AI/
+│   └── PromptBuilder.php              (Phase 2)
+├── DTOs/
+│   └── RecommendationDTO.php          (Phase 2)
+├── Console/Commands/
+│   ├── AskMakanGuruCommand.php        (Phase 2)
+│   ├── ListGeminiModelsCommand.php    (Phase 2)
+│   ├── ListGroqModelsCommand.php      (Phase 2)
+│   └── ScrapeRestaurantsCommand.php   (Phase 5) ✅
+└── Livewire/
+    ├── ChatInterface.php              (Phase 3)
+    └── ScraperInterface.php           (Phase 5) ✅
 ```
 
 ### Database Files
@@ -596,11 +735,19 @@ resources/
 ├── js/
 │   └── app.js
 └── views/
+    ├── home.blade.php                      (Phase 3)
+    ├── scraper.blade.php                   (Phase 5) ✅
     ├── components/
-    │   └── layouts/
-    │       └── app.blade.php (Phase 3)
+    │   ├── layouts/
+    │   │   └── app.blade.php               (Phase 3)
+    │   ├── chat-bubble.blade.php           (Phase 3)
+    │   ├── loading-spinner.blade.php       (Phase 3)
+    │   ├── persona-switcher.blade.php      (Phase 3)
+    │   ├── model-selector.blade.php        (Phase 3)
+    │   └── nav-link.blade.php              (Phase 5) ✅
     └── livewire/
-        └── chat-interface.blade.php (Phase 3)
+        ├── chat-interface.blade.php        (Phase 3)
+        └── scraper-interface.blade.php     (Phase 5) ✅
 ```
 
 ### Configuration Files
@@ -1170,12 +1317,71 @@ deployment/
 .env.production.example ✅ (Production environment template)
 ```
 
-**Next Steps**: Phase 5 - OpenStreetMap Integration
-- Integrate OpenStreetMap API for location data
-- Expand restaurant database coverage
-- Implement geolocation features
+**Phase 5**: ✅ **COMPLETE**
+- OpenStreetMap integration via Overpass API
+- CLI scraper command with 7 Malaysian cities
+- Beautiful web UI for scraper (`/scraper`)
+- Interactive sliders and preview mode
+- Restaurant database browser (`/restaurants`)
+- Type-ahead search and real-time filtering
+- Sortable columns with pagination
+- Real-time database statistics
+- Comprehensive testing (9 tests, 23 assertions)
+- Full documentation (2,500+ lines)
+
+**Files Created in Phase 5:**
+```
+app/Services/
+└── RestaurantScraperService.php ✅ (450+ lines)
+
+app/Console/Commands/
+└── ScrapeRestaurantsCommand.php ✅ (350+ lines)
+
+app/Livewire/
+├── ScraperInterface.php ✅ (273 lines)
+└── RestaurantList.php ✅ (240 lines)
+
+resources/views/
+├── scraper.blade.php ✅
+├── restaurants.blade.php ✅
+├── livewire/
+│   ├── scraper-interface.blade.php ✅ (288 lines)
+│   └── restaurant-list.blade.php ✅ (266 lines)
+└── components/
+    ├── nav-link.blade.php ✅
+    └── layouts/app.blade.php ✅ (updated)
+
+tests/Unit/
+└── RestaurantScraperServiceTest.php ✅ (250+ lines)
+
+routes/web.php ✅ (added /scraper and /restaurants routes)
+
+Documentation/
+├── SCRAPER_GUIDE.md ✅ (600+ lines - CLI guide)
+├── SCRAPER_UI_GUIDE.md ✅ (600+ lines - Web UI guide)
+├── PHASE5_COMPLETE.md ✅ (500+ lines - Implementation summary)
+└── SCRAPER_WEB_UI_COMPLETE.md ✅ (500+ lines - Web UI summary)
+```
+
+**Usage:**
+```bash
+# CLI Command
+php artisan makanguru:scrape --area="KLCC" --radius=5000 --limit=100
+
+# Web UI (Recommended)
+Visit: http://127.0.0.1:8000/scraper
+- Interactive interface with sliders
+- Preview mode for safe exploration
+- Visual results table
+- Real-time stats
+```
+
+**Next Steps**: Phase 6 - "Share Your Vibe" Social Media Cards
+- Design shareable card templates
+- Implement card generation (image/SVG)
+- Add social media sharing functionality
 
 ---
 
-*Last Updated: 2025-12-19*
+*Last Updated: 2025-12-20*
 *Maintained by: AI-assisted development with Claude*

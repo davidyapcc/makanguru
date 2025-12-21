@@ -175,6 +175,67 @@ php artisan gemini:list-models
 
 ---
 
+## 🌐 Scraping Real Restaurant Data
+
+MakanGuru includes a powerful scraper to populate your database with real restaurant data from **OpenStreetMap**.
+
+### Web UI (Recommended for most users)
+
+Visit the beautiful web interface at `/scraper`:
+
+```bash
+# Start the application
+php artisan serve
+
+# Visit in browser
+http://127.0.0.1:8000/scraper
+```
+
+**Features:**
+- ✅ Beautiful, mobile-first interface
+- ✅ Interactive sliders for radius and limit
+- ✅ Preview mode (see results before importing)
+- ✅ Real-time database statistics
+- ✅ Visual results table
+- ✅ No command line needed!
+
+**Quick Start:**
+1. Select area (e.g., "KLCC")
+2. Adjust radius (e.g., 5km)
+3. Set max results (e.g., 50)
+4. Toggle preview mode ON
+5. Click "Preview Restaurants"
+6. Review results, then toggle preview OFF to import
+
+See [SCRAPER_UI_GUIDE.md](SCRAPER_UI_GUIDE.md) for detailed web UI documentation.
+
+### CLI (For automation and scripts)
+
+```bash
+# Preview restaurants in Bangsar (dry-run mode)
+php artisan makanguru:scrape --area="Bangsar" --dry-run
+
+# Import 100 restaurants from KLCC
+php artisan makanguru:scrape --area="KLCC" --radius=5000 --limit=100
+
+# Wide search across Kuala Lumpur
+php artisan makanguru:scrape --area="Kuala Lumpur" --radius=10000 --limit=200
+```
+
+**Available Areas:**
+- Kuala Lumpur, Petaling Jaya, Bangsar, KLCC, Damansara, Subang Jaya, Shah Alam
+
+**Features:**
+- ✅ Real GPS coordinates from OpenStreetMap
+- ✅ Automatic halal detection
+- ✅ Smart price range inference
+- ✅ Duplicate prevention
+- ✅ Progress tracking with progress bar
+
+See [SCRAPER_GUIDE.md](SCRAPER_GUIDE.md) for comprehensive CLI documentation.
+
+---
+
 ## 🎯 Using the Web Interface
 
 **Start the application:**
@@ -187,9 +248,12 @@ php artisan serve
 npm run dev
 ```
 
-**Visit:** http://127.0.0.1:8000
+**Main Pages:**
+- **Chat Interface**: http://127.0.0.1:8000 (AI-powered recommendations)
+- **Restaurant Database**: http://127.0.0.1:8000/restaurants (browse all restaurants)
+- **Scraper**: http://127.0.0.1:8000/scraper (import from OpenStreetMap)
 
-**Features:**
+### Chat Interface (`/`)
 
 1. **Choose Your AI Guide** - Select from 3 personas:
    - 👵 **Mak Cik** - Value-focused, halal-conscious, nurturing
@@ -221,6 +285,26 @@ npm run dev
    - Clear chat to start fresh
    - Real-time loading indicators
 
+### Restaurant Database (`/restaurants`)
+
+Browse and search all restaurants in the database:
+
+**Features:**
+- ✅ **Search**: Type-ahead search across name, cuisine, description, area
+- ✅ **Filters**: Halal, Price Range, Area, Cuisine Type
+- ✅ **Sorting**: Click column headers to sort (name, area, cuisine, price)
+- ✅ **Pagination**: 20 restaurants per page
+- ✅ **Tag Display**: View restaurant tags and categories
+- ✅ **Color-coded Pricing**: Visual badges for price ranges
+- ✅ **Responsive Design**: Works on mobile and desktop
+- ✅ **Empty States**: Helpful messaging when no results found
+
+**Perfect for:**
+- Browsing all available restaurants
+- Exploring by specific filters
+- Discovering restaurants by tags
+- Quick reference lookup
+
 ---
 
 ## 🗺 High Level Roadmap
@@ -229,7 +313,7 @@ npm run dev
 * [x] **Phase 2:** AI Service Layer & Prompt Engineering ✅
 * [x] **Phase 3:** Modern UI/UX with Livewire 3 ✅
 * [x] **Phase 4:** Production Deployment (AWS, Redis, Nginx) ✅
-* [ ] **Phase 5:** OpenStreetMap Integration for broader data coverage
+* [x] **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser ✅
 * [ ] **Phase 6:** "Share Your Vibe" – Generate shareable social media cards
 * [ ] **Phase 7:** User submissions (Community-led data)
 
@@ -448,14 +532,20 @@ php artisan make:test TestName --unit      # Create unit test
 
 ```
 app/
-├── Livewire/ChatInterface.php          # Main chat component
+├── Livewire/
+│   ├── ChatInterface.php               # Main chat component
+│   ├── ScraperInterface.php            # Scraper web UI
+│   └── RestaurantList.php              # Restaurant database browser
 ├── Services/
 │   ├── GeminiService.php               # Gemini AI integration
-│   └── GroqService.php                 # Groq AI integration
+│   ├── GroqService.php                 # Groq AI integration
+│   ├── RestaurantScraperService.php    # OpenStreetMap scraper
+│   └── PlaceCacheService.php           # Redis caching
 ├── AI/PromptBuilder.php                # Persona prompt engineering
 ├── DTOs/RecommendationDTO.php          # Data transfer object
 ├── Console/Commands/
 │   ├── AskMakanGuruCommand.php         # CLI testing tool
+│   ├── ScrapeRestaurantsCommand.php    # CLI scraper
 │   ├── ListGeminiModelsCommand.php     # List Gemini models
 │   └── ListGroqModelsCommand.php       # List Groq models
 └── Models/Place.php                    # Restaurant model
@@ -465,8 +555,15 @@ resources/views/
 │   ├── chat-bubble.blade.php           # Message bubble
 │   ├── loading-spinner.blade.php       # Loading indicator
 │   ├── persona-switcher.blade.php      # Persona selector
+│   ├── nav-link.blade.php              # Navigation link component
 │   └── layouts/app.blade.php           # Main layout
-└── livewire/chat-interface.blade.php   # Chat UI
+├── livewire/
+│   ├── chat-interface.blade.php        # Chat UI
+│   ├── scraper-interface.blade.php     # Scraper UI
+│   └── restaurant-list.blade.php       # Restaurant database UI
+├── home.blade.php                      # Chat page
+├── scraper.blade.php                   # Scraper page
+└── restaurants.blade.php               # Restaurant database page
 
 resources/
 ├── css/app.css                         # Tailwind + Malaysian colors
@@ -489,7 +586,8 @@ database/seeders/PlaceSeeder.php        # 15 restaurant records
 ✅ **Phase 2:** AI Service Layer
 ✅ **Phase 3:** Modern UI/UX
 ✅ **Phase 4:** Production Deployment
-⏳ **Phase 5:** OpenStreetMap Integration (Next)
+✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
+⏳ **Phase 6:** Share Your Vibe - Social Media Cards (Next)
 
 ---
 
