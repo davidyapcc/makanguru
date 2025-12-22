@@ -13,6 +13,12 @@ Welcome to the MakanGuru documentation! This directory contains comprehensive gu
 ### User Guides (`docs/guides/`)
 Step-by-step guides for users and developers to utilize MakanGuru's features:
 
+- **[Docker Setup Guide](guides/DOCKER_SETUP.md)** - Complete Docker development environment guide
+  - Quick start with Docker
+  - Service configuration
+  - Daily workflow commands
+  - Troubleshooting Docker issues
+
 - **[Rate Limiting Guide](guides/RATE_LIMITING.md)** - Comprehensive guide on chat rate limiting
   - Configuration options
   - Session-based tracking

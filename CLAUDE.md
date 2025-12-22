@@ -189,13 +189,67 @@ Defined in `resources/css/app.css` under `@theme`:
 
 ## Development Workflow
 
-### Local Setup
+### Option 1: Docker Setup (Recommended)
+
+Docker provides a consistent development environment with production parity (MySQL 8.0, Redis, Nginx).
+
+**Prerequisites:**
+- Docker Desktop (includes Docker Compose)
+- 4GB+ RAM, 10GB+ disk space
+
+**Quick Start:**
+```bash
+# Copy Docker environment
+cp .env.docker .env
+
+# Configure API keys in .env (REQUIRED)
+# Edit .env and set GEMINI_API_KEY
+
+# Start Docker services
+docker compose up -d
+
+# Run initialization script
+bash docker/init.sh
+
+# Access application at http://localhost:8080
+```
+
+**Daily Workflow:**
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# View logs
+docker compose logs -f app
+
+# Run commands
+docker compose exec app php artisan tinker
+docker compose exec app php artisan test
+docker compose exec app bash
+```
+
+**Docker Services:**
+- `mysql` - MySQL 8.0 database (port 3307→3306)
+- `redis` - Redis 7 cache & queue (port 6380→6379)
+- `app` - PHP 8.4-FPM application
+- `nginx` - Nginx web server (port 8080→80)
+- `queue` - Laravel queue worker
+- `node` - Node.js 24 for asset building
+
+📖 **Full Docker Documentation:** [docs/guides/DOCKER_SETUP.md](docs/guides/DOCKER_SETUP.md)
+
+---
+
+### Option 2: Native Local Setup
 
 **Prerequisites:**
 - PHP >= 8.4
 - Composer
 - Node.js (via nvm recommended)
-- SQLite (pre-installed on macOS)
+- SQLite (pre-installed on macOS) or MySQL 8.0
 
 **Installation:**
 ```bash
@@ -215,8 +269,7 @@ npm run dev  # Development
 npm run build  # Production
 ```
 
-### Running the Application
-
+**Running the Application:**
 ```bash
 # Backend server
 php artisan serve
@@ -681,6 +734,29 @@ When working on this project, ensure AI assistants have:
 
 ### Common Commands
 
+#### Docker Commands (Recommended)
+
+```bash
+# Service Management
+docker compose up -d              # Start all services
+docker compose down               # Stop all services
+docker compose ps                 # Check service status
+docker compose logs -f app        # View application logs
+docker compose restart app        # Restart application
+
+# Database (Docker)
+docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan tinker
+docker compose exec mysql mysql -u makanguru -pmakanguru_secret makanguru
+
+# Application Commands (Docker)
+docker compose exec app php artisan [command]
+docker compose exec app bash      # Access container shell
+docker compose exec node npm run build
+```
+
+#### Native Commands (Without Docker)
+
 ```bash
 # Database
 php artisan migrate:fresh --seed  # Reset and seed
@@ -797,12 +873,29 @@ resources/
 
 ### Configuration Files
 ```
-.env ✅ (SQLite configured, includes rate limit settings)
-.env.example ✅ (Updated with chat configuration)
+.env ✅ (SQLite configured for native, includes rate limit settings)
+.env.docker ✅ (Docker development environment template)
+.env.example ✅ (Updated with chat and Docker configuration)
 vite.config.js ✅ (Tailwind v4 plugin)
 composer.json ✅
 package.json ✅
 config/chat.php ✅ (Chat & rate limiting configuration)
+```
+
+### Docker Files
+```
+docker/
+├── Dockerfile ✅ (PHP 8.4-FPM application container)
+├── init.sh ✅ (Initialization script)
+├── nginx/
+│   ├── default.conf ✅ (Nginx site configuration)
+│   └── nginx.conf ✅ (Nginx main configuration)
+├── php/
+│   └── php.ini ✅ (PHP runtime configuration)
+└── mysql/
+    └── my.cnf ✅ (MySQL configuration)
+
+docker compose.yml ✅ (6 services: mysql, redis, app, nginx, queue, node)
 ```
 
 ---
@@ -832,23 +925,42 @@ Get API keys from:
 - Gemini: https://ai.google.dev/
 - Groq: https://console.groq.com/
 
-### Database Configuration (Current)
+### Database Configuration
+
+**Native Development (SQLite):**
 ```ini
 DB_CONNECTION=sqlite
 # No additional config needed for local SQLite
 ```
 
-### Production Configuration (Phase 4)
+**Docker Development (MySQL):**
+```ini
+DB_CONNECTION=mysql
+DB_HOST=mysql          # Docker service name
+DB_PORT=3306
+DB_DATABASE=makanguru
+DB_USERNAME=makanguru
+DB_PASSWORD=makanguru_secret
+
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+REDIS_HOST=redis       # Docker service name
+```
+
+**Production Configuration:**
 ```ini
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=makanguru
 DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_PASSWORD=your_secure_password
 
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+REDIS_HOST=127.0.0.1
 ```
 
 ### Chat Configuration (Phase 3)

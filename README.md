@@ -77,12 +77,80 @@ We utilize a simplified **Retrieval-Augmented Generation (RAG)** pattern. Instea
 
 ### Prerequisites
 
+**Option 1: Docker (Recommended)**
+* Docker Desktop (includes Docker Compose)
+* 4GB+ RAM, 10GB+ disk space
+
+**Option 2: Native Installation**
 * PHP >= 8.4
 * Composer
 * Node.js & NPM
-* MySQL
+* MySQL 8.0
 
-### Local Development Setup
+---
+
+### Option 1: Docker Setup (Recommended)
+
+Docker provides a consistent development environment with production parity. Perfect for getting started quickly!
+
+#### Quick Start with Docker
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/makanguru.git
+cd makanguru
+
+# 2. Copy Docker environment file
+cp .env.docker .env
+
+# 3. Configure API keys in .env (REQUIRED)
+# Edit .env and set:
+#   GEMINI_API_KEY=your_actual_api_key_here
+#   GROQ_API_KEY=your_groq_api_key_here (optional)
+
+# 4. Start Docker services
+docker compose up -d
+
+# 5. Run initialization script
+bash docker/init.sh
+
+# 6. Access the application
+# Open http://localhost:8080 in your browser
+```
+
+**That's it!** Your MakanGuru application is now running with:
+- MySQL 8.0 database
+- Redis cache & queue
+- Nginx web server
+- PHP 8.4-FPM
+- Laravel queue worker
+- Node.js for asset building
+
+#### Daily Docker Workflow
+
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# View logs
+docker compose logs -f app
+
+# Run Artisan commands
+docker compose exec app php artisan tinker
+docker compose exec app php artisan test
+
+# Access application shell
+docker compose exec app bash
+```
+
+📖 **Full Docker Documentation:** [docs/guides/DOCKER_SETUP.md](docs/guides/DOCKER_SETUP.md)
+
+---
+
+### Option 2: Native Local Development Setup
 
 1. **Clone the repository**
 ```bash
