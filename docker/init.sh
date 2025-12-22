@@ -63,7 +63,8 @@ echo -e "${GREEN}✓ Frontend assets built${NC}"
 # Set proper permissions
 echo ""
 echo "Setting proper permissions..."
-docker compose exec app chmod -R 775 storage bootstrap/cache
+docker compose exec app sh -c "find storage bootstrap/cache -type d -exec chmod 775 {} \;"
+docker compose exec app sh -c "find storage bootstrap/cache -type f -exec chmod 664 {} \;"
 docker compose exec app chown -R www-data:www-data storage bootstrap/cache
 echo -e "${GREEN}✓ Permissions set${NC}"
 
