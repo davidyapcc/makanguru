@@ -358,6 +358,7 @@ database/factories/
    - ✅ Dependency injection for `AIRecommendationInterface`
    - ✅ Type-safe validation with PHP 8.4 attributes
    - ✅ Model switching functionality with `switchModel()` method
+   - ✅ Session-based rate limiting (5 messages per 60 seconds)
 
 2. **Reusable Blade Components**
    - ✅ `chat-bubble.blade.php` - Dynamic message bubbles with persona avatars
@@ -383,6 +384,9 @@ database/factories/
    - ✅ Malaysian color palette gradients
    - ✅ Persona-specific fallback messages
    - ✅ Model tracking in chat history
+   - ✅ Rate limit warning banner with countdown timer
+   - ✅ Disabled send button when rate limited
+   - ✅ Persona-specific rate limit messages
 
 5. **Routes & Views**
    - ✅ Updated `routes/web.php` to serve chat interface
@@ -391,7 +395,42 @@ database/factories/
 
 ### Files Created in Phase 3
 
-See "Current Status Summary" section below for complete file listing.
+```
+resources/views/
+├── components/
+│   ├── layouts/
+│   │   └── app.blade.php ✅
+│   ├── chat-bubble.blade.php ✅
+│   ├── loading-spinner.blade.php ✅
+│   ├── restaurant-card.blade.php ✅
+│   ├── persona-switcher.blade.php ✅
+│   └── model-selector.blade.php ✅
+├── livewire/
+│   └── chat-interface.blade.php ✅ (with rate limit UI)
+└── home.blade.php ✅
+
+app/Livewire/
+└── ChatInterface.php ✅ (with rate limiting logic)
+
+config/
+└── chat.php ✅ (rate limiting configuration)
+
+tests/Feature/
+└── ChatRateLimitTest.php ✅ (4 tests, 13 assertions)
+
+resources/js/
+└── app.js ✅ (Optimized - uses Livewire 3's built-in Alpine.js)
+
+docs/
+├── README.md ✅ (documentation index)
+├── guides/
+│   ├── RATE_LIMITING.md ✅ (rate limiting guide)
+│   ├── SCRAPER_GUIDE.md ✅ (CLI scraper guide)
+│   └── SCRAPER_UI_GUIDE.md ✅ (web scraper guide)
+└── implementation/
+    ├── PHASE5_COMPLETE.md ✅ (Phase 5 summary)
+    └── SCRAPER_WEB_UI_COMPLETE.md ✅ (Scraper UI summary)
+```
 
 ---
 
@@ -579,11 +618,14 @@ tests/Unit/
 routes/
 └── web.php ✅ (added /scraper and /restaurants routes)
 
-Documentation/
-├── SCRAPER_GUIDE.md ✅ (600+ lines)
-├── SCRAPER_UI_GUIDE.md ✅ (600+ lines)
-├── PHASE5_COMPLETE.md ✅ (500+ lines)
-└── SCRAPER_WEB_UI_COMPLETE.md ✅ (500+ lines)
+docs/
+├── README.md ✅ (documentation index)
+├── guides/
+│   ├── SCRAPER_GUIDE.md ✅ (600+ lines)
+│   └── SCRAPER_UI_GUIDE.md ✅ (600+ lines)
+└── implementation/
+    ├── PHASE5_COMPLETE.md ✅ (500+ lines)
+    └── SCRAPER_WEB_UI_COMPLETE.md ✅ (500+ lines)
 ```
 
 **Total Lines of Code:** ~3,386 lines (service + commands + UI + tests + docs)
@@ -634,6 +676,8 @@ When working on this project, ensure AI assistants have:
 6. **Never hardcode**: Use config files and environment variables
 7. **Error handling**: Always implement try-catch for external APIs
 8. **Avoid over-engineering**: Keep solutions simple and focused
+9. **Rate limiting awareness**: When adding new API-dependent features, consider rate limiting implications
+10. **Session-based features**: Use Laravel sessions for stateful features (like rate limiting) without requiring authentication
 
 ### Common Commands
 
@@ -685,6 +729,7 @@ npm run build   # Production build
 # Testing
 php artisan test
 php artisan test --filter TestName
+php artisan test --filter ChatRateLimitTest  # Test rate limiting
 ```
 
 ---
@@ -752,10 +797,12 @@ resources/
 
 ### Configuration Files
 ```
-.env ✅ (SQLite configured)
+.env ✅ (SQLite configured, includes rate limit settings)
+.env.example ✅ (Updated with chat configuration)
 vite.config.js ✅ (Tailwind v4 plugin)
 composer.json ✅
 package.json ✅
+config/chat.php ✅ (Chat & rate limiting configuration)
 ```
 
 ---
@@ -802,6 +849,21 @@ DB_PASSWORD=your_password
 
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
+```
+
+### Chat Configuration (Phase 3)
+```ini
+# Rate limiting: Maximum messages per time window (default: 5)
+CHAT_RATE_LIMIT_MAX=5
+
+# Rate limiting: Time window in seconds (default: 60 = 1 minute)
+CHAT_RATE_LIMIT_WINDOW=60
+
+# Default persona: makcik, gymbro, or atas (default: makcik)
+CHAT_DEFAULT_PERSONA=makcik
+
+# Default AI model: gemini, groq-openai, or groq-meta (default: gemini)
+CHAT_DEFAULT_MODEL=gemini
 ```
 
 ---
@@ -1251,6 +1313,13 @@ php artisan test
 - Optimized spacing in chat container
 - Fixed Livewire 3 compatibility (removed duplicate Alpine.js)
 - Working loading indicators with wire:loading
+- **Rate Limiting System**:
+  - Session-based rate limiting (5 messages per 60 seconds)
+  - Persona-specific rate limit messages
+  - Visual warning banner with countdown timer
+  - Disabled send button when rate limited
+  - Configurable via `config/chat.php`
+  - Comprehensive test coverage (4 tests, 13 assertions)
 
 **Files Created in Phase 3:**
 ```
@@ -1268,10 +1337,26 @@ resources/views/
 └── home.blade.php ✅
 
 app/Livewire/
-└── ChatInterface.php ✅
+└── ChatInterface.php ✅ (with rate limiting logic)
+
+config/
+└── chat.php ✅ (rate limiting configuration)
+
+tests/Feature/
+└── ChatRateLimitTest.php ✅ (4 tests, 13 assertions)
 
 resources/js/
 └── app.js ✅ (Optimized - uses Livewire 3's built-in Alpine.js)
+
+docs/
+├── README.md ✅ (documentation index)
+├── guides/
+│   ├── RATE_LIMITING.md ✅ (rate limiting guide)
+│   ├── SCRAPER_GUIDE.md ✅ (CLI scraper guide)
+│   └── SCRAPER_UI_GUIDE.md ✅ (web scraper guide)
+└── implementation/
+    ├── PHASE5_COMPLETE.md ✅ (Phase 5 summary)
+    └── SCRAPER_WEB_UI_COMPLETE.md ✅ (Scraper UI summary)
 ```
 
 **Running the Application:**

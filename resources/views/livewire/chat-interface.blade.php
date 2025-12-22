@@ -147,6 +147,25 @@
 
     <!-- Input Area (Fixed at Bottom) -->
     <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-4">
+        <!-- Rate Limit Warning -->
+        @if($rateLimitMessage)
+            <div class="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-yellow-800 font-medium">{{ $rateLimitMessage }}</p>
+                    @if($rateLimitResetIn)
+                        <p class="text-xs text-yellow-700 mt-1">
+                            Try again in <span class="font-bold">{{ $rateLimitResetIn }}</span> {{ $rateLimitResetIn === 1 ? 'second' : 'seconds' }}.
+                        </p>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <form wire:submit="sendMessage" class="flex items-start space-x-3">
             <!-- Text Input -->
             <div class="flex-1">
@@ -167,6 +186,7 @@
                 type="submit"
                 wire:loading.attr="disabled"
                 wire:target="sendMessage"
+                @if($rateLimitMessage) disabled @endif
                 class="flex-shrink-0 bg-gradient-to-r from-[var(--color-sky-blue)] to-[var(--color-sky-blue-light)] text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 h-[52px]"
             >
                 <span>Send</span>

@@ -61,6 +61,52 @@ class ChatInterface extends Component
     public bool $isLoading = false;
 
     /**
+     * Rate limiting: Maximum messages allowed per time window.
+     * Loaded from config/chat.php
+     */
+    private int $maxMessagesPerWindow;
+
+    /**
+     * Rate limiting: Time window in seconds.
+     * Loaded from config/chat.php
+     */
+    private int $rateLimitWindow;
+
+    /**
+     * Rate limiting error message.
+     */
+    public ?string $rateLimitMessage = null;
+
+    /**
+     * Seconds until rate limit resets.
+     */
+    public ?int $rateLimitResetIn = null;
+
+    /**
+     * Initialize component and load configuration.
+     */
+    public function mount(): void
+    {
+        $this->initializeRateLimiting();
+    }
+
+    /**
+     * Initialize rate limiting configuration.
+     * Called in mount() and also in isRateLimited() to ensure values are set.
+     */
+    private function initializeRateLimiting(): void
+    {
+        // Only initialize if not already set
+        if (!isset($this->maxMessagesPerWindow)) {
+            $this->maxMessagesPerWindow = config('chat.rate_limit.max_messages', 5);
+        }
+
+        if (!isset($this->rateLimitWindow)) {
+            $this->rateLimitWindow = config('chat.rate_limit.window_seconds', 60);
+        }
+    }
+
+    /**
      * Get the AI service based on current model.
      */
     private function getAiService(): AIRecommendationInterface
@@ -93,6 +139,15 @@ class ChatInterface extends Component
         if (empty(trim($this->userQuery))) {
             return;
         }
+
+        // Check rate limit
+        if ($this->isRateLimited()) {
+            return;
+        }
+
+        // Clear any previous rate limit messages
+        $this->rateLimitMessage = null;
+        $this->rateLimitResetIn = null;
 
         // Add user message to history
         $this->chatHistory[] = [
@@ -210,6 +265,64 @@ class ChatInterface extends Component
             'gymbro' => "Bro, my brain not loading sia. Connection down. But you know what's always good? High protein chicken rice. Can never go wrong, padu!",
             'atas' => "Darling, my connection is being absolutely dreadful right now. Perhaps just pop over to your usual spot? I trust your taste is impeccable anyway.",
             default => "Sorry, I'm having trouble connecting right now. Please try again!",
+        };
+    }
+
+    /**
+     * Check if the user has exceeded the rate limit.
+     */
+    private function isRateLimited(): bool
+    {
+        // Ensure rate limiting is initialized
+        $this->initializeRateLimiting();
+
+        $sessionKey = 'chat_messages_' . session()->getId();
+        $messages = session()->get($sessionKey, []);
+
+        // Remove messages older than the rate limit window
+        $now = now();
+        $messages = array_filter($messages, function ($timestamp) use ($now) {
+            return $now->diffInSeconds($timestamp) < $this->rateLimitWindow;
+        });
+
+        // Check if user has exceeded the limit
+        if (count($messages) >= $this->maxMessagesPerWindow) {
+            // Calculate when the oldest message will expire
+            $oldestMessage = min($messages);
+            $resetIn = $this->rateLimitWindow - $now->diffInSeconds($oldestMessage);
+
+            $this->rateLimitResetIn = max(1, (int) ceil($resetIn));
+            $this->rateLimitMessage = $this->getRateLimitMessage($this->currentPersona, $this->rateLimitResetIn);
+
+            // Update session with filtered messages
+            session()->put($sessionKey, $messages);
+
+            logger()->info('ChatInterface: Rate limit exceeded', [
+                'session_id' => session()->getId(),
+                'messages_count' => count($messages),
+                'reset_in' => $this->rateLimitResetIn,
+            ]);
+
+            return true;
+        }
+
+        // Add current timestamp to messages
+        $messages[] = $now;
+        session()->put($sessionKey, $messages);
+
+        return false;
+    }
+
+    /**
+     * Get persona-specific rate limit message.
+     */
+    private function getRateLimitMessage(string $persona, int $seconds): string
+    {
+        return match ($persona) {
+            'makcik' => "Adoi! Slow down lah! Mak Cik cannot keep up with you asking so fast. Give me {$seconds} seconds to rest, okay? Don't be so impatient!",
+            'gymbro' => "Woah bro! Too much too fast sia! Even protein shakes need rest time between sets. Chill for {$seconds} seconds, then we go again. No rush!",
+            'atas' => "Darling, please! One must not be so... eager. Quality takes time. Give me {$seconds} seconds to compose myself. Patience is a virtue, after all.",
+            default => "Please wait {$seconds} seconds before sending another message. You've reached the rate limit.",
         };
     }
 

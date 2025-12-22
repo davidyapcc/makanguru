@@ -69,6 +69,7 @@ We utilize a simplified **Retrieval-Augmented Generation (RAG)** pattern. Instea
 
 * **⚡️ Instant Results:** Powered by Livewire 3 for a Single-Page App (SPA) feel without the complexity.
 * **📂 Curated Data:** "Seed & Scrape" strategy ensures high-quality initial recommendations.
+* **🛡️ Rate Limiting:** Session-based rate limiting with persona-specific feedback prevents abuse and ensures fair usage.
 
 ---
 
@@ -127,6 +128,12 @@ GROQ_API_KEY=your_groq_api_key_here
 
 # Optional: Set default AI provider (gemini|groq)
 AI_PROVIDER=gemini
+
+# Chat Configuration
+# Rate limiting: Maximum messages per time window (default: 5)
+CHAT_RATE_LIMIT_MAX=5
+# Rate limiting: Time window in seconds (default: 60 = 1 minute)
+CHAT_RATE_LIMIT_WINDOW=60
 ```
 
 
@@ -207,7 +214,7 @@ http://127.0.0.1:8000/scraper
 5. Click "Preview Restaurants"
 6. Review results, then toggle preview OFF to import
 
-See [SCRAPER_UI_GUIDE.md](SCRAPER_UI_GUIDE.md) for detailed web UI documentation.
+See [docs/guides/SCRAPER_UI_GUIDE.md](docs/guides/SCRAPER_UI_GUIDE.md) for detailed web UI documentation.
 
 ### CLI (For automation and scripts)
 
@@ -232,7 +239,7 @@ php artisan makanguru:scrape --area="Kuala Lumpur" --radius=10000 --limit=200
 - ✅ Duplicate prevention
 - ✅ Progress tracking with progress bar
 
-See [SCRAPER_GUIDE.md](SCRAPER_GUIDE.md) for comprehensive CLI documentation.
+See [docs/guides/SCRAPER_GUIDE.md](docs/guides/SCRAPER_GUIDE.md) for comprehensive CLI documentation.
 
 ---
 
@@ -304,6 +311,42 @@ Browse and search all restaurants in the database:
 - Exploring by specific filters
 - Discovering restaurants by tags
 - Quick reference lookup
+
+---
+
+## 🛡️ Rate Limiting
+
+MakanGuru implements **session-based rate limiting** to prevent abuse and ensure fair usage of AI resources.
+
+### Features
+
+- **5 messages per minute** (configurable via `.env`)
+- **Session-based tracking** (no authentication required)
+- **Persona-specific feedback** messages when limit is reached
+- **Visual countdown** showing seconds until reset
+- **Automatic cleanup** of expired timestamps
+
+### Configuration
+
+Adjust rate limits in your `.env` file:
+
+```ini
+# Maximum messages per time window
+CHAT_RATE_LIMIT_MAX=5
+
+# Time window in seconds (60 = 1 minute)
+CHAT_RATE_LIMIT_WINDOW=60
+```
+
+### Persona-Specific Messages
+
+When users hit the rate limit, they receive character-appropriate feedback:
+
+- **Mak Cik**: "Adoi! Slow down lah! Mak Cik cannot keep up with you asking so fast..."
+- **Gym Bro**: "Woah bro! Too much too fast sia! Even protein shakes need rest time between sets..."
+- **Atas Friend**: "Darling, please! One must not be so... eager. Quality takes time..."
+
+See [docs/guides/RATE_LIMITING.md](docs/guides/RATE_LIMITING.md) for comprehensive documentation.
 
 ---
 
@@ -446,6 +489,16 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
     * Fixed user message bubble display with `space-x-reverse`.
     * Removed duplicate Alpine.js initialization (55% smaller JS bundle: 36.35 kB).
 
+* [x] **Rate Limiting & Abuse Prevention**
+    * Implemented session-based rate limiting (5 messages per 60 seconds).
+    * Created `config/chat.php` for centralized chat configuration.
+    * Persona-specific rate limit messages for Mak Cik, Gym Bro, and Atas Friend.
+    * Visual warning banner with countdown timer.
+    * Disabled send button when rate limited.
+    * Automatic cleanup of expired timestamps.
+    * Comprehensive test coverage: `tests/Feature/ChatRateLimitTest.php` (4 tests, 13 assertions).
+    * Full documentation in `RATE_LIMITING.md`.
+
 ---
 
 ### **Phase 4: Production Deployment** ✅ COMPLETE
@@ -569,6 +622,12 @@ resources/
 ├── css/app.css                         # Tailwind + Malaysian colors
 └── js/app.js                           # Alpine.js config
 
+config/
+└── chat.php                            # Chat & rate limiting config
+
+tests/Feature/
+└── ChatRateLimitTest.php               # Rate limiting tests
+
 database/seeders/PlaceSeeder.php        # 15 restaurant records
 ```
 
@@ -578,13 +637,13 @@ database/seeders/PlaceSeeder.php        # 15 restaurant records
 - **Frontend:** Livewire 3, Tailwind CSS v4, Alpine.js
 - **AI:** Google Gemini 2.5 Flash, Groq (Meta Llama, OpenAI GPT)
 - **Database:** SQLite (local), MySQL (production)
-- **Testing:** PHPUnit (25 tests, 60 assertions)
+- **Testing:** PHPUnit (29 tests, 73 assertions)
 
 ### Current Status
 
 ✅ **Phase 1:** Foundation & Data Layer
 ✅ **Phase 2:** AI Service Layer
-✅ **Phase 3:** Modern UI/UX
+✅ **Phase 3:** Modern UI/UX (including Rate Limiting)
 ✅ **Phase 4:** Production Deployment
 ✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
 ⏳ **Phase 6:** Share Your Vibe - Social Media Cards (Next)
