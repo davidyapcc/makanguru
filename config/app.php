@@ -65,7 +65,19 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Access Key
+    |--------------------------------------------------------------------------
+    |
+    | This key is used to protect admin routes (scraper, restaurant management).
+    | Leave empty for development (open access) or set a strong key for production.
+    |
+    */
+
+    'admin_access_key' => env('APP_ADMIN_ACCESS_KEY'),
 
     /*
     |--------------------------------------------------------------------------

@@ -11,13 +11,21 @@
                         Browse all {{ $totalCount }} restaurants in our collection
                     </p>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex gap-4 items-center">
                     <a href="/scraper" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium transition-colors">
                         🌐 Scraper
                     </a>
                     <a href="/" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium transition-colors">
                         💬 Chat
                     </a>
+                    @if(session('admin_authenticated'))
+                        <form method="POST" action="{{ route('admin.logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                                🚪 Logout
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

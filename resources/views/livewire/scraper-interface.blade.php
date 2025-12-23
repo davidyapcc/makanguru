@@ -11,13 +11,21 @@
                         Import real restaurant data from OpenStreetMap
                     </p>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex gap-4 items-center">
                     <a href="/restaurants" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium transition-colors">
                         🍽️ Restaurants
                     </a>
                     <a href="/" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium transition-colors">
                         💬 Chat
                     </a>
+                    @if(session('admin_authenticated'))
+                        <form method="POST" action="{{ route('admin.logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                                🚪 Logout
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

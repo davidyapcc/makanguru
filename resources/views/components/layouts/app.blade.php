@@ -22,12 +22,20 @@
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="/restaurants" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
-                        🍽️ Restaurants
-                    </a>
-                    <a href="/scraper" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
-                        🌐 Scraper
-                    </a>
+                    @if(session('admin_authenticated'))
+                        <a href="/restaurants" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
+                            🍽️ Restaurants
+                        </a>
+                        <a href="/scraper" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">
+                            🌐 Scraper
+                        </a>
+                        <form method="POST" action="{{ route('admin.logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                                🚪 Logout
+                            </button>
+                        </form>
+                    @endif
                     <div class="text-sm text-gray-600">
                         Where to makan?
                     </div>
