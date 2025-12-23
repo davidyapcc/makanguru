@@ -7,6 +7,31 @@
 
     <title>{{ $title ?? 'MakanGuru - Where to Makan?' }}</title>
 
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="MakanGuru - AI-powered Malaysian food recommendations. Get personalized suggestions from The Mak Cik, The Gym Bro, or The Atas Friend. Never wonder 'Makan Mana?' again!">
+    <meta name="keywords" content="Malaysian food, restaurant recommendations, AI food guide, where to eat Malaysia, halal food, nasi lemak, makan mana">
+    <meta name="author" content="MakanGuru">
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ $title ?? 'MakanGuru - AI-Powered Malaysian Food Recommendations' }}">
+    <meta property="og:description" content="Get personalized Malaysian food recommendations from AI personalities. The Mak Cik, The Gym Bro, and The Atas Friend are here to help you decide where to eat!">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="{{ $title ?? 'MakanGuru - AI-Powered Malaysian Food Recommendations' }}">
+    <meta name="twitter:description" content="Get personalized Malaysian food recommendations from AI personalities. Never wonder 'Makan Mana?' again!">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#DC2626">
+    <link rel="canonical" href="{{ url()->current() }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>

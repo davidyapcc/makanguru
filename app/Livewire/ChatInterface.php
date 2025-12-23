@@ -7,6 +7,7 @@ use App\Models\Place;
 use App\Services\GeminiService;
 use App\Services\GroqService;
 use App\Services\PlaceCacheService;
+use App\Services\SocialCardService;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -81,6 +82,11 @@ class ChatInterface extends Component
      * Seconds until rate limit resets.
      */
     public ?int $rateLimitResetIn = null;
+
+    /**
+     * Card being previewed (if any).
+     */
+    public ?array $cardPreview = null;
 
     /**
      * Initialize component and load configuration.
@@ -324,6 +330,64 @@ class ChatInterface extends Component
             'atas' => "Darling, please! One must not be so... eager. Quality takes time. Give me {$seconds} seconds to compose myself. Patience is a virtue, after all.",
             default => "Please wait {$seconds} seconds before sending another message. You've reached the rate limit.",
         };
+    }
+
+    /**
+     * Generate a shareable social card from a message.
+     */
+    public function shareMessage(int $index): void
+    {
+        if (!isset($this->chatHistory[$index])) {
+            return;
+        }
+
+        $message = $this->chatHistory[$index];
+
+        // Only allow sharing assistant responses
+        if ($message['role'] !== 'assistant') {
+            return;
+        }
+
+        // Find the corresponding user query
+        $userQuery = '';
+        if ($index > 0 && isset($this->chatHistory[$index - 1])) {
+            $userQuery = $this->chatHistory[$index - 1]['content'];
+        }
+
+        try {
+            $cardService = app(SocialCardService::class);
+            $filename = $cardService->generateCard(
+                $message['content'],
+                $message['persona'],
+                $userQuery
+            );
+
+            $this->cardPreview = [
+                'url' => $cardService->getCardUrl($filename),
+                'filename' => $filename,
+                'message_index' => $index,
+            ];
+
+            logger()->info('ChatInterface: Social card generated', [
+                'filename' => $filename,
+                'persona' => $message['persona'],
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('ChatInterface: Failed to generate social card', [
+                'error' => $e->getMessage(),
+                'message_index' => $index,
+            ]);
+
+            // Could add a flash message here if needed
+        }
+    }
+
+    /**
+     * Close the card preview modal.
+     */
+    public function closeCardPreview(): void
+    {
+        $this->cardPreview = null;
     }
 
     /**
