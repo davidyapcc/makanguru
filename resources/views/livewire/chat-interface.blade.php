@@ -39,6 +39,9 @@
                     @if($filterArea)
                         <span class="px-1.5 py-0.5 bg-blue-100 text-[10px] text-blue-700 rounded-full font-medium">{{ $filterArea }}</span>
                     @endif
+                    @if($filterHalal || $filterPrice || $filterArea)
+                        <span class="px-1.5 py-0.5 bg-purple-100 text-[10px] text-purple-700 rounded-full font-medium">🤖 Smart</span>
+                    @endif
                 </div>
             </div>
             <svg
@@ -95,6 +98,94 @@
             </div>
         </div>
     </div>
+
+    <!-- Example Query Buttons -->
+    @if(empty($chatHistory))
+        <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+            <div class="text-xs font-semibold text-gray-700 mb-2">💡 Try asking:</div>
+            <div class="flex flex-wrap gap-2">
+                @if($currentPersona === 'makcik')
+                    <button wire:click="$set('userQuery', 'Where to get halal nasi lemak in Damansara?')"
+                            class="text-xs px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-800 rounded-full transition-colors">
+                        🍛 Halal nasi lemak
+                    </button>
+                    <button wire:click="$set('userQuery', 'Value for money breakfast near me')"
+                            class="text-xs px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-800 rounded-full transition-colors">
+                        💰 Budget breakfast
+                    </button>
+                    <button wire:click="$set('userQuery', 'Family-friendly restaurant with generous portions')"
+                            class="text-xs px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-800 rounded-full transition-colors">
+                        👨‍👩‍👧‍👦 Family spots
+                    </button>
+                @elseif($currentPersona === 'gymbro')
+                    <button wire:click="$set('userQuery', 'High protein meal prep spots')"
+                            class="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full transition-colors">
+                        💪 Protein meals
+                    </button>
+                    <button wire:click="$set('userQuery', 'Grilled chicken with no rice option')"
+                            class="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full transition-colors">
+                        🍗 Clean eating
+                    </button>
+                    <button wire:click="$set('userQuery', 'Quick post-workout meal')"
+                            class="text-xs px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full transition-colors">
+                        ⚡ Post-workout fuel
+                    </button>
+                @elseif($currentPersona === 'atas')
+                    <button wire:click="$set('userQuery', 'Instagram-worthy brunch spot with good vibes')"
+                            class="text-xs px-3 py-1.5 bg-pink-100 hover:bg-pink-200 text-pink-800 rounded-full transition-colors">
+                        📸 Aesthetic brunch
+                    </button>
+                    <button wire:click="$set('userQuery', 'Trendy cafe in Bangsar')"
+                            class="text-xs px-3 py-1.5 bg-pink-100 hover:bg-pink-200 text-pink-800 rounded-full transition-colors">
+                        ☕ Hipster cafe
+                    </button>
+                    <button wire:click="$set('userQuery', 'Upscale dining for special occasion')"
+                            class="text-xs px-3 py-1.5 bg-pink-100 hover:bg-pink-200 text-pink-800 rounded-full transition-colors">
+                        ✨ Fine dining
+                    </button>
+                @elseif($currentPersona === 'tauke')
+                    <button wire:click="$set('userQuery', 'Quick business lunch with parking')"
+                            class="text-xs px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full transition-colors">
+                        💼 Business lunch
+                    </button>
+                    <button wire:click="$set('userQuery', 'Value for money with fast service')"
+                            class="text-xs px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full transition-colors">
+                        ⚡ Fast & worth it
+                    </button>
+                    <button wire:click="$set('userQuery', 'Air-conditioned place with round tables')"
+                            class="text-xs px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full transition-colors">
+                        🧧 Business meeting
+                    </button>
+                @elseif($currentPersona === 'matmotor')
+                    <button wire:click="$set('userQuery', 'Late night mamak with easy parking')"
+                            class="text-xs px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-full transition-colors">
+                        🏍️ Mamak supper
+                    </button>
+                    <button wire:click="$set('userQuery', '24/7 burger spot')"
+                            class="text-xs px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-full transition-colors">
+                        🍔 Midnight makan
+                    </button>
+                    <button wire:click="$set('userQuery', 'Cheap lepak spot with the gang')"
+                            class="text-xs px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-full transition-colors">
+                        🌙 Lepak vibes
+                    </button>
+                @elseif($currentPersona === 'corporate')
+                    <button wire:click="$set('userQuery', 'Coffee place with WiFi near office')"
+                            class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full transition-colors">
+                        ☕ Coffee & WiFi
+                    </button>
+                    <button wire:click="$set('userQuery', 'Quick lunch under 1 hour')"
+                            class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full transition-colors">
+                        ⏰ Lunch break
+                    </button>
+                    <button wire:click="$set('userQuery', 'Comfort food for healing after meeting')"
+                            class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full transition-colors">
+                        🍜 Healing food
+                    </button>
+                @endif
+            </div>
+        </div>
+    @endif
 
     <!-- Chat Messages Container -->
     <div

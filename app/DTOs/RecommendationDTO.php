@@ -86,6 +86,9 @@ class RecommendationDTO implements Arrayable
             'makcik' => "Aiyah, Mak Cik's brain got too tired lah! But you know what, just go to Village Park for nasi lemak. Cannot go wrong one!",
             'gymbro' => "Bro, system's down but you know the drill - hit up any chicken rice place, get extra protein, skip the carbs. We'll be back stronger!",
             'atas' => "Darling, technical difficulties. But honestly? Just go to Bangsar, walk into any minimalist cafe, order the avocado toast. You'll survive.",
+            'tauke' => "Wa lao eh! System down, wasting time! Cincai go kopitiam nearby lah, order economy rice, fast and worth it. Come back later try again!",
+            'matmotor' => "Member, connection koyak already! No worries lah, just ride to nearest mamak, order teh tarik and roti canai. We lepak again later, on!",
+            'corporate' => "System's down. Great. Another Monday. Just grab whatever's nearest from Grab Food lah, I need a coffee break too. Try again after lunch.",
         ];
 
         return new self(
@@ -147,5 +150,114 @@ class RecommendationDTO implements Arrayable
     public function getTokensUsed(): int
     {
         return $this->metadata['tokens_used'] ?? 0;
+    }
+
+    /**
+     * Format the recommendation with persona-specific template.
+     * Adds structured formatting based on persona style.
+     *
+     * @return string Formatted recommendation
+     */
+    public function getFormattedRecommendation(): string
+    {
+        return match ($this->persona) {
+            'makcik' => $this->formatMakCikStyle(),
+            'gymbro' => $this->formatGymBroStyle(),
+            'atas' => $this->formatAtasStyle(),
+            'tauke' => $this->formatTaukeStyle(),
+            'matmotor' => $this->formatMatMotorStyle(),
+            'corporate' => $this->formatCorporateStyle(),
+            default => $this->recommendation,
+        };
+    }
+
+    /**
+     * Format in Mak Cik style: Warm, caring, with emojis.
+     */
+    private function formatMakCikStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add caring emoji at the start if not present
+        if (!str_contains($text, '👵') && !str_contains($text, '❤️')) {
+            $text = "👵 " . $text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Format in Gym Bro style: Energetic, with power emojis.
+     */
+    private function formatGymBroStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add power emoji at the start if not present
+        if (!str_contains($text, '💪') && !str_contains($text, '🔥')) {
+            $text = "💪 " . $text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Format in Atas Friend style: Sophisticated, minimal emojis.
+     */
+    private function formatAtasStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add sophistication emoji at the start if not present
+        if (!str_contains($text, '💅') && !str_contains($text, '✨')) {
+            $text = "💅 " . $text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Format in Tauke style: Business-focused, with money/luck emojis.
+     */
+    private function formatTaukeStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add business emoji at the start if not present
+        if (!str_contains($text, '🧧') && !str_contains($text, '💰')) {
+            $text = "🧧 " . $text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Format in Mat Motor style: Casual, with motor/night emojis.
+     */
+    private function formatMatMotorStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add motor emoji at the start if not present
+        if (!str_contains($text, '🏍️') && !str_contains($text, '🌙')) {
+            $text = "🏍️ " . $text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Format in Corporate Slave style: Stressed, with office emojis.
+     */
+    private function formatCorporateStyle(): string
+    {
+        $text = $this->recommendation;
+
+        // Add office emoji at the start if not present
+        if (!str_contains($text, '💼') && !str_contains($text, '☕')) {
+            $text = "💼 " . $text;
+        }
+
+        return $text;
     }
 }

@@ -26,7 +26,7 @@ class ChatInterface extends Component
     public string $userQuery = '';
 
     /**
-     * Current active persona (makcik|gymbro|atas).
+     * Current active persona (makcik|gymbro|atas|tauke|matmotor|corporate).
      */
     public string $currentPersona = 'makcik';
 
@@ -94,6 +94,7 @@ class ChatInterface extends Component
     public function mount(): void
     {
         $this->initializeRateLimiting();
+        $this->trackPersonaUsage($this->currentPersona);
     }
 
     /**
@@ -221,9 +222,62 @@ class ChatInterface extends Component
      */
     public function switchPersona(string $persona): void
     {
-        if (in_array($persona, ['makcik', 'gymbro', 'atas'])) {
+        if (in_array($persona, ['makcik', 'gymbro', 'atas', 'tauke', 'matmotor', 'corporate'])) {
             $this->currentPersona = $persona;
+            $this->trackPersonaUsage($persona);
+            $this->applyPersonaFilters($persona);
         }
+    }
+
+    /**
+     * Get a time-based persona suggestion.
+     * Suggests appropriate personas based on current time of day.
+     *
+     * @return string Suggested persona name
+     */
+    public function getSuggestedPersona(): string
+    {
+        $hour = (int) now()->format('H');
+
+        return match (true) {
+            // Late night (10PM - 4AM): Mat Motor (rempit hours)
+            $hour >= 22 || $hour < 4 => 'matmotor',
+
+            // Early morning (4AM - 9AM): Mak Cik (breakfast & value)
+            $hour >= 4 && $hour < 9 => 'makcik',
+
+            // Work hours (9AM - 6PM): Corporate Slave (lunch break)
+            $hour >= 9 && $hour < 18 => 'corporate',
+
+            // Evening (6PM - 8PM): Gym Bro (post-workout meal)
+            $hour >= 18 && $hour < 20 => 'gymbro',
+
+            // Dinner time (8PM - 10PM): Tauke (business dinner) or Atas (date night)
+            // Alternate based on day of week: weekday = Tauke, weekend = Atas
+            $hour >= 20 && $hour < 22 => now()->isWeekend() ? 'atas' : 'tauke',
+
+            default => 'makcik', // Fallback
+        };
+    }
+
+    /**
+     * Get a friendly message explaining the time-based suggestion.
+     *
+     * @return string Explanation message
+     */
+    public function getSuggestionMessage(): string
+    {
+        $hour = (int) now()->format('H');
+
+        return match (true) {
+            $hour >= 22 || $hour < 4 => '🏍️ Late night vibes! Mat Motor knows the best supper spots.',
+            $hour >= 4 && $hour < 9 => '👵 Good morning! Mak Cik has breakfast recommendations.',
+            $hour >= 9 && $hour < 18 => '💼 Lunch break! Corporate Slave finds quick office-friendly spots.',
+            $hour >= 18 && $hour < 20 => '💪 Post-gym time! Gym Bro has high-protein options.',
+            $hour >= 20 && $hour < 22 && now()->isWeekend() => '💅 Weekend dinner! Atas Friend knows the aesthetic spots.',
+            $hour >= 20 && $hour < 22 => '🧧 Dinner time! Tauke recommends efficient business-friendly places.',
+            default => '👵 Anytime is makan time! Mak Cik is here to help.',
+        };
     }
 
     /**
@@ -328,8 +382,163 @@ class ChatInterface extends Component
             'makcik' => "Adoi! Slow down lah! Mak Cik cannot keep up with you asking so fast. Give me {$seconds} seconds to rest, okay? Don't be so impatient!",
             'gymbro' => "Woah bro! Too much too fast sia! Even protein shakes need rest time between sets. Chill for {$seconds} seconds, then we go again. No rush!",
             'atas' => "Darling, please! One must not be so... eager. Quality takes time. Give me {$seconds} seconds to compose myself. Patience is a virtue, after all.",
+            'tauke' => "Wa tell you ah, time is money! But even business deal need time to process. Wait {$seconds} seconds first, then we talk. Cannot rush rush like that!",
+            'matmotor' => "Member, slow down lah! Even my motor need to cool down after spinning. Wait {$seconds} seconds, then we lepak again. Don't koyak yourself!",
+            'corporate' => "Okay look, I know you're stressed, but I'm also rate-limited by the system. Give me {$seconds} seconds to recover from that last meeting... I mean message. We all need healing time.",
             default => "Please wait {$seconds} seconds before sending another message. You've reached the rate limit.",
         };
+    }
+
+    /**
+     * Track persona usage for analytics.
+     * Stores usage data in session for basic analytics.
+     *
+     * @param string $persona The persona being used
+     */
+    private function trackPersonaUsage(string $persona): void
+    {
+        $analytics = session('persona_analytics', []);
+
+        // Initialize persona data if not exists
+        if (!isset($analytics[$persona])) {
+            $analytics[$persona] = [
+                'count' => 0,
+                'last_used' => null,
+                'first_used' => now()->toIso8601String(),
+            ];
+        }
+
+        // Increment usage count
+        $analytics[$persona]['count']++;
+        $analytics[$persona]['last_used'] = now()->toIso8601String();
+
+        // Track time of day usage
+        $hour = (int) now()->format('H');
+        $timeSlot = match (true) {
+            $hour >= 4 && $hour < 9 => 'morning',
+            $hour >= 9 && $hour < 12 => 'late_morning',
+            $hour >= 12 && $hour < 14 => 'lunch',
+            $hour >= 14 && $hour < 18 => 'afternoon',
+            $hour >= 18 && $hour < 21 => 'evening',
+            $hour >= 21 || $hour < 4 => 'night',
+            default => 'other',
+        };
+
+        if (!isset($analytics[$persona]['time_slots'])) {
+            $analytics[$persona]['time_slots'] = [];
+        }
+
+        $analytics[$persona]['time_slots'][$timeSlot] =
+            ($analytics[$persona]['time_slots'][$timeSlot] ?? 0) + 1;
+
+        session(['persona_analytics' => $analytics]);
+    }
+
+    /**
+     * Apply smart filters based on persona characteristics.
+     * Automatically adjusts filters to match persona preferences.
+     *
+     * @param string $persona The persona to apply filters for
+     */
+    private function applyPersonaFilters(string $persona): void
+    {
+        match ($persona) {
+            'makcik' => $this->applyMakCikFilters(),
+            'gymbro' => $this->applyGymBroFilters(),
+            'atas' => $this->applyAtasFilters(),
+            'tauke' => $this->applyTaukeFilters(),
+            'matmotor' => $this->applyMatMotorFilters(),
+            'corporate' => $this->applyCorporateFilters(),
+            default => null,
+        };
+    }
+
+    /**
+     * Apply Mak Cik persona filters: Halal + Budget/Moderate prices.
+     */
+    private function applyMakCikFilters(): void
+    {
+        $this->filterHalal = true;
+        $this->filterPrice = null; // Show all prices, but prefer budget
+        $this->filterArea = null;
+    }
+
+    /**
+     * Apply Gym Bro persona filters: No specific halal filter, moderate prices.
+     */
+    private function applyGymBroFilters(): void
+    {
+        $this->filterHalal = false;
+        $this->filterPrice = 'moderate';
+        $this->filterArea = null;
+    }
+
+    /**
+     * Apply Atas Friend persona filters: Expensive only.
+     */
+    private function applyAtasFilters(): void
+    {
+        $this->filterHalal = false;
+        $this->filterPrice = 'expensive';
+        $this->filterArea = null;
+    }
+
+    /**
+     * Apply Tauke persona filters: Value for money (budget/moderate).
+     */
+    private function applyTaukeFilters(): void
+    {
+        $this->filterHalal = false;
+        $this->filterPrice = 'moderate';
+        $this->filterArea = null;
+    }
+
+    /**
+     * Apply Mat Motor persona filters: Budget only.
+     */
+    private function applyMatMotorFilters(): void
+    {
+        $this->filterHalal = false;
+        $this->filterPrice = 'budget';
+        $this->filterArea = null;
+    }
+
+    /**
+     * Apply Corporate Slave persona filters: Moderate prices.
+     */
+    private function applyCorporateFilters(): void
+    {
+        $this->filterHalal = false;
+        $this->filterPrice = 'moderate';
+        $this->filterArea = null;
+    }
+
+    /**
+     * Get persona analytics for current session.
+     *
+     * @return array Analytics data
+     */
+    public function getPersonaAnalytics(): array
+    {
+        return session('persona_analytics', []);
+    }
+
+    /**
+     * Get the most popular persona in current session.
+     *
+     * @return string|null Most used persona or null
+     */
+    public function getMostPopularPersona(): ?string
+    {
+        $analytics = $this->getPersonaAnalytics();
+
+        if (empty($analytics)) {
+            return null;
+        }
+
+        $sorted = collect($analytics)->sortByDesc('count');
+
+        return $sorted->keys()->first();
     }
 
     /**

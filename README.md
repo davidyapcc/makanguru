@@ -4,7 +4,7 @@
 
 MakanGuru is a generative AI application designed to solve the eternal Malaysian paradox: *"So many places to eat, but don't know where to go."*
 
-Unlike standard directories (Google Maps/Yelp), MakanGuru uses **Context-Aware AI Personalities** (The Mak Cik, The Gym Bro, The Atas Friend) to provide curated, vibe-based recommendations using natural language.
+Unlike standard directories (Google Maps/Yelp), MakanGuru uses **Context-Aware AI Personalities** (The Mak Cik, The Gym Bro, The Atas Friend, The Tauke, The Mat Motor, The Corporate Slave) to provide curated, vibe-based recommendations using natural language.
 
 ---
 
@@ -64,7 +64,10 @@ We utilize a simplified **Retrieval-Augmented Generation (RAG)** pattern. Instea
 * **🗣 AI Personalities:**
 * **The Mak Cik:** Nags you to eat properly, recommends value-for-money and halal spots.
 * **The Gym Bro:** Focuses on protein, "padu" levels, and efficiency.
-* **The Atas:** Recommends aesthetic cafes and judges you for being cheap.
+* **The Atas Friend:** Recommends aesthetic cafes and judges you for being cheap.
+* **The Tauke:** Time is money, efficiency-focused, values good deals and air-con.
+* **The Mat Motor:** Late-night specialist, easy parking, budget-friendly lepak spots.
+* **The Corporate Slave:** Quick lunches, strong coffee, WiFi essential, stressed office worker vibes.
 
 
 * **⚡️ Instant Results:** Powered by Livewire 3 for a Single-Page App (SPA) feel without the complexity.
@@ -330,10 +333,13 @@ npm run dev
 
 ### Chat Interface (`/`)
 
-1. **Choose Your AI Guide** - Select from 3 personas:
+1. **Choose Your AI Guide** - Select from 6 personas:
    - 👵 **Mak Cik** - Value-focused, halal-conscious, nurturing
    - 💪 **Gym Bro** - Protein-heavy, efficiency-focused
    - 💅 **Atas Friend** - Aesthetic, upscale, Instagram-worthy
+   - 🧧 **Tauke** - Efficiency-driven, value for money, business-focused
+   - 🏍️ **Mat Motor** - Late-night spots, easy parking, budget-friendly
+   - 💼 **Corporate Slave** - Quick lunches, coffee quality, WiFi availability
 
 2. **Select AI Model** - Choose your preferred AI provider:
    - 🤖 **Gemini** (Google) - Fast and cost-effective
@@ -757,7 +763,8 @@ database/seeders/PlaceSeeder.php        # 15 restaurant records
 ✅ **Phase 4:** Production Deployment
 ✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
 ✅ **Phase 6:** Share Your Vibe - Social Media Cards
-⏳ **Phase 7:** User Submissions (Next)
+✅ **Phase 7:** New Personas Enhancement (6 Personas + Smart Features)
+⏳ **Phase 8:** User Submissions (Next)
 
 ---
 

@@ -6,13 +6,37 @@
         'makcik' => '👵',
         'gymbro' => '💪',
         'atas' => '💅',
+        'tauke' => '🧧',
+        'matmotor' => '🏍️',
+        'corporate' => '💼',
         default => '🤖',
     };
     $personaName = match($persona) {
         'makcik' => 'Mak Cik',
         'gymbro' => 'Gym Bro',
         'atas' => 'Atas Friend',
+        'tauke' => 'Tauke',
+        'matmotor' => 'Mat Motor',
+        'corporate' => 'Corporate Slave',
         default => 'AI',
+    };
+    $avatarGradient = match($persona) {
+        'makcik' => 'from-[var(--color-teh-tarik-brown-light)] to-[var(--color-teh-tarik-brown)]',
+        'gymbro' => 'from-[var(--color-pandan-green-light)] to-[var(--color-pandan-green)]',
+        'atas' => 'from-[var(--color-sambal-red)] to-[var(--color-sambal-red-dark)]',
+        'tauke' => 'from-yellow-400 to-yellow-600',
+        'matmotor' => 'from-purple-400 to-purple-600',
+        'corporate' => 'from-gray-400 to-gray-600',
+        default => 'from-blue-400 to-blue-600',
+    };
+    $borderColor = match($persona) {
+        'makcik' => 'border-[var(--color-teh-tarik-brown-light)]',
+        'gymbro' => 'border-[var(--color-pandan-green-light)]',
+        'atas' => 'border-[var(--color-sambal-red)]',
+        'tauke' => 'border-yellow-400',
+        'matmotor' => 'border-purple-400',
+        'corporate' => 'border-gray-400',
+        default => 'border-gray-200',
     };
 @endphp
 
@@ -20,7 +44,7 @@
     <div class="flex items-start max-w-[85%] {{ $isUser ? 'flex-row-reverse' : 'flex-row' }} {{ $isUser ? 'space-x-reverse space-x-2' : 'space-x-2' }}">
         <!-- Avatar -->
         @if(!$isUser)
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br {{ $persona === 'makcik' ? 'from-[var(--color-teh-tarik-brown-light)] to-[var(--color-teh-tarik-brown)]' : ($persona === 'gymbro' ? 'from-[var(--color-pandan-green-light)] to-[var(--color-pandan-green)]' : 'from-[var(--color-sambal-red)] to-[var(--color-sambal-red-dark)]') }} flex items-center justify-center text-white text-xl shadow-md">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br {{ $avatarGradient }} flex items-center justify-center text-white text-xl shadow-md">
                 {{ $personaEmoji }}
             </div>
         @endif
@@ -33,7 +57,7 @@
                 </div>
             @endif
 
-            <div class="rounded-2xl px-4 py-3 shadow-sm {{ $isUser ? 'bg-[var(--color-sky-blue)] text-white rounded-tr-sm' : 'bg-white text-gray-800 rounded-tl-sm border border-gray-200' }}">
+            <div class="rounded-2xl px-4 py-3 shadow-sm {{ $isUser ? 'bg-[var(--color-sky-blue)] text-white rounded-tr-sm' : 'bg-white text-gray-800 rounded-tl-sm border-2 ' . $borderColor }}">
                 @if($isFallback)
                     <div class="flex items-center space-x-2 text-amber-600 text-xs mb-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

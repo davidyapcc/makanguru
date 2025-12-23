@@ -32,7 +32,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The default AI persona to use when starting a new chat session.
-    | Options: makcik, gymbro, atas
+    | Options: makcik, gymbro, atas, tauke, matmotor, corporate
     |
     */
 

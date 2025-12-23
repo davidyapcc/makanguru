@@ -46,6 +46,24 @@ class SocialCardService
             'accent' => '#F472B6',
             'text' => '#831843',
         ],
+        'tauke' => [
+            'background' => '#FEF9C3',
+            'primary' => '#CA8A04',
+            'accent' => '#EAB308',
+            'text' => '#713F12',
+        ],
+        'matmotor' => [
+            'background' => '#F3E8FF',
+            'primary' => '#7C3AED',
+            'accent' => '#A78BFA',
+            'text' => '#5B21B6',
+        ],
+        'corporate' => [
+            'background' => '#F3F4F6',
+            'primary' => '#374151',
+            'accent' => '#6B7280',
+            'text' => '#1F2937',
+        ],
     ];
 
     /**
@@ -55,6 +73,9 @@ class SocialCardService
         'makcik' => '👵',
         'gymbro' => '💪',
         'atas' => '💅',
+        'tauke' => '🧧',
+        'matmotor' => '🏍️',
+        'corporate' => '💼',
     ];
 
     /**
@@ -64,13 +85,16 @@ class SocialCardService
         'makcik' => 'The Mak Cik',
         'gymbro' => 'The Gym Bro',
         'atas' => 'The Atas Friend',
+        'tauke' => 'The Tauke',
+        'matmotor' => 'The Mat Motor',
+        'corporate' => 'The Corporate Slave',
     ];
 
     /**
      * Generate a social media card from a recommendation.
      *
      * @param string $recommendation The AI recommendation text
-     * @param string $persona The persona used ('makcik', 'gymbro', 'atas')
+     * @param string $persona The persona used ('makcik', 'gymbro', 'atas', 'tauke', 'matmotor', 'corporate')
      * @param string $userQuery The user's original query
      * @return string The file path to the generated card
      */

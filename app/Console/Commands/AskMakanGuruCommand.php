@@ -17,7 +17,7 @@ class AskMakanGuruCommand extends Command
      */
     protected $signature = 'makanguru:ask
                             {query : Your food query (e.g., "I want nasi lemak in Damansara")}
-                            {--persona=makcik : The AI persona to use (makcik|gymbro|atas)}
+                            {--persona=makcik : The AI persona to use (makcik|gymbro|atas|tauke|matmotor|corporate)}
                             {--model=gemini : The AI model to use (gemini|groq-openai|groq-meta)}
                             {--area= : Optional: Filter by area}
                             {--halal : Optional: Only show halal places}
@@ -40,8 +40,8 @@ class AskMakanGuruCommand extends Command
         $model = $this->option('model');
 
         // Validate persona
-        if (!in_array($persona, ['makcik', 'gymbro', 'atas'])) {
-            $this->error("Invalid persona '{$persona}'. Must be: makcik, gymbro, or atas");
+        if (!in_array($persona, ['makcik', 'gymbro', 'atas', 'tauke', 'matmotor', 'corporate'])) {
+            $this->error("Invalid persona '{$persona}'. Must be: makcik, gymbro, atas, tauke, matmotor, or corporate");
             return self::FAILURE;
         }
 
