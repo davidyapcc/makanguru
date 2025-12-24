@@ -679,7 +679,7 @@ MakanGuru has comprehensive test coverage to ensure code quality and reliability
 ### Test Statistics
 
 - **Total Tests**: 201 tests
-- **Pass Rate**: 99.0% (199 passing, 1 failing, 1 skipped)
+- **Pass Rate**: 99.5% (200 passing, 0 failing, 1 skipped)
 - **Total Assertions**: 540+
 - **Test Framework**: PHPUnit 11.5.46
 
@@ -729,6 +729,11 @@ php artisan test --parallel
 - Database seeder now fetches real restaurants from OpenStreetMap
 - 50-70 real establishments across 7 Malaysian areas
 - Intelligent duplicate detection and fallback mechanism
+
+**✅ Test Suite Modernization**:
+- Migrated to PHP 8 Attributes (`#[Test]`) for newer test files
+- Resolved rate limiting collisions in comprehensive persona tests
+- Zero deprecation warnings in test output
 
 See [docs/TEST_COVERAGE_SUMMARY.md](docs/TEST_COVERAGE_SUMMARY.md) for detailed test documentation.
 

@@ -417,6 +417,9 @@ class ChatInterfaceTest extends TestCase
      */
     public function test_all_six_personas_work(): void
     {
+        // Increase rate limit for this test since we check all 6 personas
+        config(['chat.rate_limit.max_messages' => 10]);
+
         // Arrange
         $personas = ['makcik', 'gymbro', 'atas', 'tauke', 'matmotor', 'corporate'];
 

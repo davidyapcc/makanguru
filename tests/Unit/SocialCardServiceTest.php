@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use App\Services\SocialCardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -30,7 +31,7 @@ class SocialCardServiceTest extends TestCase
         $this->service = new SocialCardService();
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_a_social_card_for_makcik_persona(): void
     {
         $recommendation = 'Go to Village Park for nasi lemak! Very famous and value for money.';
@@ -40,7 +41,7 @@ class SocialCardServiceTest extends TestCase
         $filename = $this->service->generateCard($recommendation, $persona, $query);
 
         // Assert file was created
-        Storage::disk('public')->assertExists($filename);
+        $this->assertTrue(Storage::disk('public')->exists($filename));
 
         // Assert filename format
         $this->assertStringStartsWith('social-cards/', $filename);
@@ -55,7 +56,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('MakanGuru', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_a_social_card_for_gymbro_persona(): void
     {
         $recommendation = 'Bro, hit up that chicken rice place for maximum protein gains!';
@@ -65,7 +66,7 @@ class SocialCardServiceTest extends TestCase
         $filename = $this->service->generateCard($recommendation, $persona, $query);
 
         // Assert file was created
-        Storage::disk('public')->assertExists($filename);
+        $this->assertTrue(Storage::disk('public')->exists($filename));
 
         // Assert file contains gym bro specific content
         $content = Storage::disk('public')->get($filename);
@@ -73,7 +74,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('💪', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_a_social_card_for_atas_persona(): void
     {
         $recommendation = 'Darling, you simply must try the artisanal cafe in KLCC!';
@@ -83,7 +84,7 @@ class SocialCardServiceTest extends TestCase
         $filename = $this->service->generateCard($recommendation, $persona, $query);
 
         // Assert file was created
-        Storage::disk('public')->assertExists($filename);
+        $this->assertTrue(Storage::disk('public')->exists($filename));
 
         // Assert file contains atas specific content
         $content = Storage::disk('public')->get($filename);
@@ -91,7 +92,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('💅', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_truncates_long_recommendations(): void
     {
         $longRecommendation = str_repeat('This is a very long recommendation. ', 50);
@@ -108,7 +109,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringNotContainsString($longRecommendation, $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_escapes_special_characters_in_svg(): void
     {
         $recommendation = 'Try the <special> "quoted" & restaurant\'s food!';
@@ -126,7 +127,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('special', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_valid_svg_markup(): void
     {
         $recommendation = 'Go to the best restaurant!';
@@ -145,7 +146,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('</svg>', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_public_url_for_card(): void
     {
         $recommendation = 'Great food here!';
@@ -160,7 +161,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString($filename, $url);
     }
 
-    /** @test */
+    #[Test]
     public function it_deletes_a_card(): void
     {
         $recommendation = 'Test recommendation';
@@ -170,17 +171,17 @@ class SocialCardServiceTest extends TestCase
         $filename = $this->service->generateCard($recommendation, $persona, $query);
 
         // Assert file exists
-        Storage::disk('public')->assertExists($filename);
+        $this->assertTrue(Storage::disk('public')->exists($filename));
 
         // Delete the card
         $deleted = $this->service->deleteCard($filename);
 
         // Assert deletion was successful
         $this->assertTrue($deleted);
-        Storage::disk('public')->assertMissing($filename);
+        $this->assertFalse(Storage::disk('public')->exists($filename));
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_deletion_of_non_existent_card(): void
     {
         $nonExistentFile = 'social-cards/non-existent.svg';
@@ -193,7 +194,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertIsBool($deleted);
     }
 
-    /** @test */
+    #[Test]
     public function it_cleans_up_old_cards(): void
     {
         // Create some test cards
@@ -215,7 +216,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $deleted);
     }
 
-    /** @test */
+    #[Test]
     public function it_uses_correct_persona_colors(): void
     {
         $personas = ['makcik', 'gymbro', 'atas'];
@@ -230,7 +231,7 @@ class SocialCardServiceTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_branding_elements(): void
     {
         $filename = $this->service->generateCard('Test', 'makcik', 'Test');
@@ -241,7 +242,7 @@ class SocialCardServiceTest extends TestCase
         $this->assertStringContainsString('AI-Powered Malaysian Food Recommendations', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_formats_recommendation_and_query_sections(): void
     {
         $recommendation = 'Visit this amazing restaurant!';

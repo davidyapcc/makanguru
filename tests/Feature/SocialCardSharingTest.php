@@ -9,6 +9,7 @@ use App\Services\SocialCardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -28,7 +29,7 @@ class SocialCardSharingTest extends TestCase
         Storage::fake('public');
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_social_card_when_share_button_is_clicked(): void
     {
         $component = Livewire::test(ChatInterface::class)
@@ -61,7 +62,7 @@ class SocialCardSharingTest extends TestCase
         Storage::disk('public')->assertExists($cardPreview['filename']);
     }
 
-    /** @test */
+    #[Test]
     public function it_only_allows_sharing_assistant_messages(): void
     {
         $component = Livewire::test(ChatInterface::class)
@@ -81,7 +82,7 @@ class SocialCardSharingTest extends TestCase
         $component->assertSet('cardPreview', null);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_invalid_message_index(): void
     {
         $component = Livewire::test(ChatInterface::class)
@@ -101,7 +102,7 @@ class SocialCardSharingTest extends TestCase
         $component->assertSet('cardPreview', null);
     }
 
-    /** @test */
+    #[Test]
     public function it_closes_card_preview_modal(): void
     {
         $component = Livewire::test(ChatInterface::class)
@@ -129,7 +130,7 @@ class SocialCardSharingTest extends TestCase
         $component->assertSet('cardPreview', null);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_user_query_in_card(): void
     {
         $userQuery = 'Where can I find the best nasi lemak?';
@@ -161,7 +162,7 @@ class SocialCardSharingTest extends TestCase
         $this->assertStringContainsString($recommendation, $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_cards_with_different_personas(): void
     {
         $personas = ['makcik', 'gymbro', 'atas'];
@@ -194,7 +195,7 @@ class SocialCardSharingTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_shareable_url(): void
     {
         $component = Livewire::test(ChatInterface::class)
@@ -223,7 +224,7 @@ class SocialCardSharingTest extends TestCase
         $this->assertStringContainsString('.svg', $cardPreview['url']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_multiple_cards_in_conversation(): void
     {
         $component = Livewire::test(ChatInterface::class)
