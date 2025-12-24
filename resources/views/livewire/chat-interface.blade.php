@@ -15,9 +15,6 @@
     <!-- Persona Switcher -->
     <x-persona-switcher :currentPersona="$currentPersona" />
 
-    <!-- Model Selector -->
-    <x-model-selector :currentModel="$currentModel" />
-
     <!-- Filters Bar (Optional) -->
     <div
         x-data="{ open: false }"
@@ -28,8 +25,16 @@
             class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
         >
             <div class="flex items-center space-x-2">
-                <div class="text-xs font-semibold text-gray-700">Filters:</div>
+                <div class="text-xs font-semibold text-gray-700">Settings:</div>
                 <div class="flex items-center gap-2">
+                    @php
+                        $modelNames = [
+                            'gemini' => 'Gemini',
+                            'groq-openai' => 'GPT',
+                            'groq-meta' => 'Llama'
+                        ];
+                    @endphp
+                    <span class="px-1.5 py-0.5 bg-blue-100 text-[10px] text-blue-700 rounded-full font-medium">{{ $modelNames[$currentModel] ?? 'Gemini' }}</span>
                     @if($filterHalal)
                         <span class="px-1.5 py-0.5 bg-green-100 text-[10px] text-green-700 rounded-full font-medium">Halal</span>
                     @endif
@@ -57,6 +62,18 @@
 
         <div x-show="open" x-transition class="p-3 pt-0">
             <div class="flex flex-wrap gap-3 items-center">
+                <!-- AI Model Selector -->
+                <select
+                    wire:model.live="currentModel"
+                    class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sky-blue] focus:border-[--color-sky-blue] font-medium"
+                >
+                    <option value="gemini">🤖 Gemini (Google)</option>
+                    @if(!empty(config('services.groq.api_key')))
+                        <option value="groq-openai">🧠 GPT (OpenAI via Groq)</option>
+                        <option value="groq-meta">🦙 Llama (Meta via Groq)</option>
+                    @endif
+                </select>
+
                 <!-- Halal Filter -->
                 <label class="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -197,7 +214,9 @@
         @if(empty($chatHistory))
             <!-- Welcome Message -->
             <div class="text-center pt-4 pb-2">
-                <div class="text-6xl mb-4">🍜</div>
+                <div class="mb-4 flex items-center justify-center">
+                    <img src="{{ asset('images/makanguru-transparent-bg-logo.png') }}" alt="MakanGuru Logo" class="h-32 w-auto object-contain">
+                </div>
                 <h2 class="text-2xl font-bold text-[--color-teh-tarik-brown] mb-2">
                     Makan Mana?
                 </h2>

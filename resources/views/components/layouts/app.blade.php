@@ -17,7 +17,7 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $title ?? 'MakanGuru - AI-Powered Malaysian Food Recommendations' }}">
     <meta property="og:description" content="Get personalized Malaysian food recommendations from AI personalities. The Mak Cik, The Gym Bro, and The Atas Friend are here to help you decide where to eat!">
-    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image" content="{{ asset('images/og-makanguru-logo.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
@@ -26,11 +26,17 @@
     <meta name="twitter:url" content="{{ url()->current() }}">
     <meta name="twitter:title" content="{{ $title ?? 'MakanGuru - AI-Powered Malaysian Food Recommendations' }}">
     <meta name="twitter:description" content="Get personalized Malaysian food recommendations from AI personalities. Never wonder 'Makan Mana?' again!">
-    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+    <meta name="twitter:image" content="{{ asset('images/og-makanguru-logo.png') }}">
 
     <!-- Additional Meta Tags -->
     <meta name="theme-color" content="#DC2626">
     <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('images/favicon/site.webmanifest') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -40,12 +46,12 @@
     <header class="bg-white shadow-sm sticky top-0 z-50 border-b-2 border-[--color-sambal-red]">
         <div class="max-w-4xl mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="text-2xl">🍜</div>
+                <a href="/" class="flex items-center space-x-2">
+                    <img src="{{ asset('images/makanguru-logo-removebg-small.png') }}" alt="MakanGuru Logo" class="h-10 w-10 object-contain">
                     <h1 class="text-xl font-bold text-[--color-teh-tarik-brown]">
                         MakanGuru
                     </h1>
-                </div>
+                </a>
                 <div class="flex items-center space-x-4">
                     @if(session('admin_authenticated'))
                         <a href="/restaurants" class="text-sm text-[--color-sky-blue] hover:text-[--color-sky-blue-light] font-medium">

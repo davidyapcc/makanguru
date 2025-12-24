@@ -1479,6 +1479,60 @@ php artisan tinker
 # Output: 0.000090 USD (cheaper than Gemini!)
 ```
 
+**14. Social Card Images Not Loading (404 Error) - Docker**
+
+**Symptom:**
+When sharing AI recommendations, the social media card modal shows:
+- "Failed to load card preview" error message
+- Browser console shows 404 errors for `/storage/social-cards/*.svg`
+- Nginx logs show: `open() "/var/www/html/public/storage/..." failed (2: No such file or directory)`
+
+**Root Cause:**
+The `public/storage` symlink is pointing to an absolute host machine path instead of the Docker container's internal path. This happens when `php artisan storage:link` is run on the host machine instead of inside the container.
+
+**Solution:**
+Recreate the storage symlink inside the Docker container:
+
+```bash
+# Remove the incorrect symlink
+docker compose exec app rm public/storage
+
+# Recreate with correct path
+docker compose exec app php artisan storage:link
+```
+
+**Verification:**
+Check that the symlink points to the container's internal path:
+
+```bash
+# Should show: public/storage -> /var/www/html/storage/app/public
+docker compose exec app ls -la public/ | grep storage
+
+# NOT: public/storage -> /Users/.../storage/app/public (host path - wrong!)
+```
+
+**Prevention:**
+Always run Laravel commands inside the Docker container, not on the host machine:
+
+```bash
+# ✅ Correct (inside container)
+docker compose exec app php artisan storage:link
+
+# ❌ Wrong (on host machine)
+php artisan storage:link
+```
+
+**For Native (Non-Docker) Setup:**
+This issue doesn't occur in native installations. If you experience 404 errors on storage files in native setup:
+
+```bash
+# Recreate symlink
+php artisan storage:link
+
+# Check permissions
+chmod -R 775 storage bootstrap/cache
+```
+
 ---
 
 ## Version Information

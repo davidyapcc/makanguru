@@ -149,6 +149,17 @@ docker compose exec app php artisan test
 docker compose exec app bash
 ```
 
+**⚠️ Important Docker Note:**
+Always run Laravel Artisan commands **inside the Docker container** using `docker compose exec app`, not directly on your host machine. This ensures paths and symlinks work correctly in the containerized environment.
+
+```bash
+# ✅ Correct
+docker compose exec app php artisan storage:link
+
+# ❌ Wrong (creates invalid symlinks)
+php artisan storage:link
+```
+
 📖 **Full Docker Documentation:** [docs/guides/DOCKER_SETUP.md](docs/guides/DOCKER_SETUP.md)
 
 ---
