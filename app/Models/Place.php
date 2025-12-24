@@ -82,15 +82,15 @@ class Place extends Model
      */
     public function scopeNear(Builder $query, float $latitude, float $longitude, float $radiusKm = 10): Builder
     {
-        $haversine = "(6371 * acos(cos(radians(?))
+        $haversine = "(6371 * acos(cos(radians({$latitude}))
                      * cos(radians(latitude))
-                     * cos(radians(longitude) - radians(?))
-                     + sin(radians(?))
+                     * cos(radians(longitude) - radians({$longitude}))
+                     + sin(radians({$latitude}))
                      * sin(radians(latitude))))";
 
         return $query
-            ->selectRaw("*, {$haversine} AS distance", [$latitude, $longitude, $latitude])
-            ->whereRaw("{$haversine} <= ?", [$latitude, $longitude, $latitude, $radiusKm])
+            ->selectRaw("*, {$haversine} AS distance")
+            ->whereRaw("{$haversine} <= {$radiusKm}")
             ->orderBy('distance');
     }
 

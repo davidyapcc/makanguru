@@ -3,16 +3,100 @@
 namespace Database\Seeders;
 
 use App\Models\Place;
+use App\Services\RestaurantScraperService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Log;
 
 class PlaceSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * This seeder fetches real restaurant data from OpenStreetMap
+     * for various Malaysian areas to provide quality seed data.
      */
     public function run(): void
     {
-        // Golden Records - Famous Malaysian Eateries
+        $this->command->info('🌍 Fetching real restaurant data from OpenStreetMap...');
+
+        // Define areas to scrape with coordinates and limits
+        $areasToScrape = [
+            ['name' => 'Bangsar', 'lat' => 3.1305, 'lng' => 101.6711, 'radius' => 2000, 'limit' => 10],
+            ['name' => 'KLCC', 'lat' => 3.1578, 'lng' => 101.7123, 'radius' => 2000, 'limit' => 10],
+            ['name' => 'Petaling Jaya', 'lat' => 3.1073, 'lng' => 101.6067, 'radius' => 3000, 'limit' => 10],
+            ['name' => 'Damansara', 'lat' => 3.1466, 'lng' => 101.6190, 'radius' => 2000, 'limit' => 10],
+            ['name' => 'Subang Jaya', 'lat' => 3.0478, 'lng' => 101.5866, 'radius' => 2000, 'limit' => 10],
+            ['name' => 'Bukit Bintang', 'lat' => 3.1466, 'lng' => 101.7103, 'radius' => 1500, 'limit' => 10],
+            ['name' => 'Shah Alam', 'lat' => 3.0738, 'lng' => 101.5183, 'radius' => 3000, 'limit' => 10],
+        ];
+
+        $scraper = new RestaurantScraperService();
+        $totalImported = 0;
+        $totalDuplicates = 0;
+
+        foreach ($areasToScrape as $areaConfig) {
+            $this->command->info("📍 Scraping {$areaConfig['name']}...");
+
+            try {
+                $restaurants = $scraper->fetchFromOverpass(
+                    $areaConfig['lat'],
+                    $areaConfig['lng'],
+                    $areaConfig['radius'],
+                    $areaConfig['limit']
+                );
+
+                // Import restaurants (skip duplicates)
+                $imported = 0;
+                $duplicates = 0;
+
+                foreach ($restaurants as $restaurant) {
+                    // Check for duplicate by name and approximate location
+                    $exists = Place::where('name', $restaurant['name'])
+                        ->where('area', 'LIKE', "%{$restaurant['area']}%")
+                        ->exists();
+
+                    if (!$exists) {
+                        Place::create($restaurant);
+                        $imported++;
+                    } else {
+                        $duplicates++;
+                    }
+                }
+
+                $totalImported += $imported;
+                $totalDuplicates += $duplicates;
+
+                $this->command->info("  ✅ Imported: {$imported} | Skipped duplicates: {$duplicates}");
+            } catch (\Exception $e) {
+                $this->command->error("  ❌ Failed to scrape {$areaConfig['name']}: {$e->getMessage()}");
+                Log::error("PlaceSeeder failed for {$areaConfig['name']}", [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+
+            // Small delay to be respectful to OpenStreetMap API
+            usleep(500000); // 0.5 seconds
+        }
+
+        $this->command->newLine();
+        $this->command->info("🎉 Seeding complete!");
+        $this->command->info("📊 Total imported: {$totalImported} restaurants");
+        $this->command->info("⏭️  Skipped duplicates: {$totalDuplicates}");
+
+        // If no restaurants were imported (e.g., API failure), add fallback golden records
+        if ($totalImported === 0) {
+            $this->command->warn('⚠️  No restaurants imported from OpenStreetMap. Adding fallback golden records...');
+            $this->seedGoldenRecords();
+        }
+    }
+
+    /**
+     * Seed famous Malaysian restaurants as fallback data.
+     * Used when OpenStreetMap scraping fails or returns no results.
+     */
+    private function seedGoldenRecords(): void
+    {
         $goldenRecords = [
             [
                 'name' => 'Village Park Restaurant',
@@ -81,143 +165,14 @@ class PlaceSeeder extends Seeder
             ],
         ];
 
-        // Dummy Records for Testing
-        $dummyRecords = [
-            [
-                'name' => 'Warung Pak Mat',
-                'description' => 'No-frills Malay food. Tastes like your mak masak.',
-                'address' => 'Jalan Gasing, Petaling Jaya, Selangor',
-                'area' => 'Petaling Jaya',
-                'latitude' => 3.1000,
-                'longitude' => 101.6500,
-                'price' => 'budget',
-                'tags' => ['nasi campur', 'malay', 'local'],
-                'is_halal' => true,
-                'cuisine_type' => 'Malay',
-                'opening_hours' => '7:00 AM - 5:00 PM',
-            ],
-            [
-                'name' => 'Gym Bro Bowl',
-                'description' => 'High protein, low carb. Gains and flavor coexist here.',
-                'address' => 'Jalan Telawi, Bangsar, Kuala Lumpur',
-                'area' => 'Bangsar',
-                'latitude' => 3.1300,
-                'longitude' => 101.6720,
-                'price' => 'moderate',
-                'tags' => ['healthy', 'protein', 'gym-friendly', 'bowl'],
-                'is_halal' => false,
-                'cuisine_type' => 'Healthy, Western',
-                'opening_hours' => '10:00 AM - 9:00 PM',
-            ],
-            [
-                'name' => 'Kedai Mamak Satu Malaysia',
-                'description' => 'The 24/7 savior. Roti canai at 3 AM hits different.',
-                'address' => 'Jalan SS15, Subang Jaya, Selangor',
-                'area' => 'Subang Jaya',
-                'latitude' => 3.0738,
-                'longitude' => 101.5878,
-                'price' => 'budget',
-                'tags' => ['mamak', 'roti canai', '24/7', 'supper'],
-                'is_halal' => true,
-                'cuisine_type' => 'Indian-Muslim',
-                'opening_hours' => '24 hours',
-            ],
-            [
-                'name' => 'Fancy Pants Bistro',
-                'description' => 'Where your wallet cries but your taste buds sing opera.',
-                'address' => 'Pavilion KL, Bukit Bintang, Kuala Lumpur',
-                'area' => 'Bukit Bintang',
-                'latitude' => 3.1498,
-                'longitude' => 101.7129,
-                'price' => 'expensive',
-                'tags' => ['fine dining', 'atas', 'date night', 'western'],
-                'is_halal' => false,
-                'cuisine_type' => 'Western, Fine Dining',
-                'opening_hours' => '12:00 PM - 11:00 PM',
-            ],
-            [
-                'name' => 'Aunty Lim Char Kuey Teow',
-                'description' => 'Wok hei so strong it might cure your hangover. Cash only.',
-                'address' => 'Jalan Imbi, Kuala Lumpur',
-                'area' => 'Imbi',
-                'latitude' => 3.1453,
-                'longitude' => 101.7069,
-                'price' => 'budget',
-                'tags' => ['char kuey teow', 'chinese', 'wok hei', 'street food'],
-                'is_halal' => false,
-                'cuisine_type' => 'Chinese',
-                'opening_hours' => '5:00 PM - 11:00 PM',
-            ],
-            [
-                'name' => 'Protein Shack',
-                'description' => 'Meal prep central. Bodybuilders approved.',
-                'address' => 'Jalan PJU 1A, Ara Damansara, Petaling Jaya',
-                'area' => 'Ara Damansara',
-                'latitude' => 3.1118,
-                'longitude' => 101.5814,
-                'price' => 'moderate',
-                'tags' => ['healthy', 'protein', 'meal prep', 'clean eating'],
-                'is_halal' => true,
-                'cuisine_type' => 'Healthy',
-                'opening_hours' => '11:00 AM - 9:00 PM',
-            ],
-            [
-                'name' => 'Restoran Sup Tulang ZZ',
-                'description' => 'Spicy bone marrow soup that will clear your sinuses. Bring tissues.',
-                'address' => 'Jalan Klang Lama, Kuala Lumpur',
-                'area' => 'Old Klang Road',
-                'latitude' => 3.0979,
-                'longitude' => 101.6797,
-                'price' => 'budget',
-                'tags' => ['sup tulang', 'spicy', 'malay', 'supper'],
-                'is_halal' => true,
-                'cuisine_type' => 'Malay',
-                'opening_hours' => '6:00 PM - 3:00 AM',
-            ],
-            [
-                'name' => 'Artisan Coffee Lab',
-                'description' => 'Single origin beans, pretentious baristas, excellent coffee.',
-                'address' => 'Jalan Mesui, KLCC, Kuala Lumpur',
-                'area' => 'KLCC',
-                'latitude' => 3.1578,
-                'longitude' => 101.7123,
-                'price' => 'expensive',
-                'tags' => ['coffee', 'specialty', 'aesthetic', 'workspace'],
-                'is_halal' => false,
-                'cuisine_type' => 'Cafe',
-                'opening_hours' => '8:00 AM - 8:00 PM',
-            ],
-            [
-                'name' => 'Uncle Wong Bak Kut Teh',
-                'description' => 'Herbal pork soup that grandma swears can cure anything.',
-                'address' => 'Jalan Klang Baru, Klang, Selangor',
-                'area' => 'Klang',
-                'latitude' => 3.0333,
-                'longitude' => 101.4444,
-                'price' => 'budget',
-                'tags' => ['bak kut teh', 'chinese', 'pork', 'traditional'],
-                'is_halal' => false,
-                'cuisine_type' => 'Chinese',
-                'opening_hours' => '7:00 AM - 3:00 PM',
-            ],
-            [
-                'name' => 'Salad Stop',
-                'description' => 'Overpriced leaves but you feel healthy. Balance restored.',
-                'address' => 'Sunway Pyramid, Bandar Sunway, Selangor',
-                'area' => 'Sunway',
-                'latitude' => 3.0733,
-                'longitude' => 101.6074,
-                'price' => 'moderate',
-                'tags' => ['salad', 'healthy', 'vegetarian options', 'quick'],
-                'is_halal' => false,
-                'cuisine_type' => 'Healthy, Western',
-                'opening_hours' => '10:00 AM - 10:00 PM',
-            ],
-        ];
-
-        // Insert all records
-        foreach (array_merge($goldenRecords, $dummyRecords) as $place) {
-            Place::create($place);
+        foreach ($goldenRecords as $place) {
+            // Check for duplicate
+            $exists = Place::where('name', $place['name'])->exists();
+            if (!$exists) {
+                Place::create($place);
+            }
         }
+
+        $this->command->info('✅ Added 5 golden record restaurants');
     }
 }

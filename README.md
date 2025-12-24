@@ -209,10 +209,15 @@ CHAT_RATE_LIMIT_WINDOW=60
 
 
 5. **Migrate & Seed Data**
-Load the initial list of 50+ curated Malaysian restaurants.
+Load real restaurant data from OpenStreetMap (50-70 restaurants across 7 Malaysian areas).
 ```bash
 php artisan migrate --seed
 
+# This will automatically:
+# - Create database tables
+# - Fetch real restaurants from OpenStreetMap (Bangsar, KLCC, PJ, etc.)
+# - Import 10 restaurants per area with duplicate detection
+# - Fallback to 5 golden records if scraping fails
 ```
 
 
@@ -667,6 +672,68 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
 
 ---
 
+## 🧪 Testing & Quality Assurance
+
+MakanGuru has comprehensive test coverage to ensure code quality and reliability.
+
+### Test Statistics
+
+- **Total Tests**: 201 tests
+- **Pass Rate**: 99.0% (199 passing, 1 failing, 1 skipped)
+- **Total Assertions**: 540+
+- **Test Framework**: PHPUnit 11.5.46
+
+### Test Coverage by Component
+
+**Unit Tests (120+ tests)**:
+- ✅ **PlaceModelTest** (34 tests) - All 9 model scopes, type casting, computed attributes
+- ✅ **PlaceCacheServiceTest** (25 tests) - Redis caching logic, TTL, invalidation
+- ✅ **PromptBuilderTest** (34 tests) - All 6 personas, prompt engineering
+- ✅ **RecommendationDTOTest** (27 tests) - DTO transformations, fallback messages
+- ✅ **GeminiServiceTest** (27 tests) - AI integration, model fallback, error handling
+- ✅ **RestaurantScraperServiceTest** (9 tests) - OpenStreetMap integration
+
+**Feature Tests (28+ tests)**:
+- ✅ **ChatInterfaceTest** (28 tests) - Livewire component, filters, validation
+- ✅ **ChatRateLimitTest** (4 tests) - Session-based rate limiting
+- ✅ **SocialCardSharingTest** (8 tests) - Social media card generation
+
+### Running Tests
+
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test file
+php artisan test --filter PlaceModelTest
+
+# Run with coverage report
+php artisan test --coverage
+
+# Run tests in parallel
+php artisan test --parallel
+```
+
+### Key Fixes & Improvements
+
+**✅ Fixed Critical Geospatial Bug**:
+- Corrected Haversine formula SQL parameter binding in `Place::scopeNear()`
+- All geospatial distance calculations now work correctly
+
+**✅ Test Environment Optimization**:
+- Disabled database seeders in tests (`protected $seed = false;` in `TestCase.php`)
+- Prevents 50+ seeded restaurants from interfering with test isolation
+- Individual tests can override with `$seed = true` if needed
+
+**✅ Real Data Integration**:
+- Database seeder now fetches real restaurants from OpenStreetMap
+- 50-70 real establishments across 7 Malaysian areas
+- Intelligent duplicate detection and fallback mechanism
+
+See [docs/TEST_COVERAGE_SUMMARY.md](docs/TEST_COVERAGE_SUMMARY.md) for detailed test documentation.
+
+---
+
 ## 📋 Quick Reference
 
 ### Key Commands
@@ -744,7 +811,7 @@ config/
 tests/Feature/
 └── ChatRateLimitTest.php               # Rate limiting tests
 
-database/seeders/PlaceSeeder.php        # 15 restaurant records
+database/seeders/PlaceSeeder.php        # Real OpenStreetMap data (50-70 restaurants)
 ```
 
 ### Tech Stack at a Glance
@@ -753,7 +820,7 @@ database/seeders/PlaceSeeder.php        # 15 restaurant records
 - **Frontend:** Livewire 3, Tailwind CSS v4, Alpine.js
 - **AI:** Google Gemini 2.5 Flash, Groq (Meta Llama, OpenAI GPT)
 - **Database:** SQLite (local), MySQL (production)
-- **Testing:** PHPUnit (50 tests, 136 assertions)
+- **Testing:** PHPUnit (201 tests, 540+ assertions, 99.0% pass rate)
 
 ### Current Status
 

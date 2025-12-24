@@ -195,10 +195,386 @@ class GeminiServiceTest extends TestCase
         // Act
         $personas = PromptBuilder::getAvailablePersonas();
 
-        // Assert
-        $this->assertCount(3, $personas);
+        // Assert: Now 6 personas (Phase 7)
+        $this->assertCount(6, $personas);
         $this->assertContains('makcik', $personas);
         $this->assertContains('gymbro', $personas);
         $this->assertContains('atas', $personas);
+        $this->assertContains('tauke', $personas);
+        $this->assertContains('matmotor', $personas);
+        $this->assertContains('corporate', $personas);
+    }
+
+    /**
+     * Test model fallback system with rate limiting.
+     */
+    public function test_model_fallback_on_rate_limit(): void
+    {
+        // Arrange: Mock rate limit error (429)
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::sequence()
+                ->push(['error' => ['message' => 'Resource exhausted']], 429)
+                ->push(['error' => ['message' => 'Resource exhausted']], 429)
+                ->push([
+                    'candidates' => [
+                        [
+                            'content' => [
+                                'parts' => [
+                                    ['text' => 'Success with fallback model!'],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'usageMetadata' => ['totalTokenCount' => 100],
+                ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'makcik', $places);
+
+        // Assert: Should eventually succeed with fallback model
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertStringContainsString('Success', $result->recommendation);
+    }
+
+    /**
+     * Test all fallback models exhausted returns fallback response.
+     */
+    public function test_all_fallback_models_exhausted(): void
+    {
+        // Arrange: All models return rate limit
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(
+                ['error' => ['message' => 'Resource exhausted']],
+                429
+            ),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'gymbro', $places);
+
+        // Assert: Should return graceful fallback
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertTrue($result->isFallback());
+    }
+
+    /**
+     * Test network timeout handling.
+     */
+    public function test_network_timeout_returns_fallback(): void
+    {
+        // Arrange: Simulate timeout
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => function () {
+                throw new \Illuminate\Http\Client\ConnectionException('Connection timeout');
+            },
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'atas', $places);
+
+        // Assert
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertTrue($result->isFallback());
+    }
+
+    /**
+     * Test malformed API response returns fallback.
+     */
+    public function test_malformed_api_response_returns_fallback(): void
+    {
+        // Arrange: Invalid response structure
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(
+                ['unexpected' => 'structure'],
+                200
+            ),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'makcik', $places);
+
+        // Assert
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertTrue($result->isFallback());
+    }
+
+    /**
+     * Test empty places collection.
+     */
+    public function test_recommend_with_empty_places_collection(): void
+    {
+        // Arrange
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'No places available, try somewhere else!'],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 50],
+            ], 200),
+        ]);
+
+        $places = collect([]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'gymbro', $places);
+
+        // Assert: Should still work with empty places
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertFalse($result->isFallback());
+    }
+
+    /**
+     * Test very long user query.
+     */
+    public function test_recommend_with_very_long_query(): void
+    {
+        // Arrange
+        $longQuery = str_repeat('I want to eat delicious food. ', 100);
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Response to long query'],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 500],
+            ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend($longQuery, 'atas', $places);
+
+        // Assert
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertEquals(500, $result->getTokensUsed());
+    }
+
+    /**
+     * Test health check returns true with valid API key.
+     */
+    public function test_health_check_returns_true_with_api_key(): void
+    {
+        // Arrange
+        config(['services.gemini.api_key' => 'valid-api-key']);
+
+        // Act
+        $result = $this->service->healthCheck();
+
+        // Assert
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test cost estimation with zero tokens.
+     */
+    public function test_cost_estimation_with_zero_tokens(): void
+    {
+        // Act
+        $cost = GeminiService::estimateCost(0, 0);
+
+        // Assert
+        $this->assertEquals(0.0, $cost);
+    }
+
+    /**
+     * Test cost estimation with large token counts.
+     */
+    public function test_cost_estimation_with_large_token_counts(): void
+    {
+        // Arrange & Act: 1M input, 1M output
+        $cost = GeminiService::estimateCost(1000000, 1000000);
+
+        // Assert
+        // 1M * 0.075 / 1M = 0.075
+        // 1M * 0.30 / 1M = 0.30
+        // Total = 0.375
+        $this->assertEquals(0.375, $cost);
+    }
+
+    /**
+     * Test API response with safety block.
+     */
+    public function test_api_response_with_safety_block(): void
+    {
+        // Arrange: Response blocked by safety settings
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [],
+                        ],
+                        'finishReason' => 'SAFETY',
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Controversial query', 'makcik', $places);
+
+        // Assert: Should return fallback
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertTrue($result->isFallback());
+    }
+
+    /**
+     * Test API response with multiple candidates (uses first).
+     */
+    public function test_api_response_with_multiple_candidates(): void
+    {
+        // Arrange
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'First candidate response'],
+                            ],
+                        ],
+                    ],
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Second candidate response'],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 100],
+            ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'gymbro', $places);
+
+        // Assert: Should use first candidate
+        $this->assertStringContainsString('First candidate', $result->recommendation);
+    }
+
+    /**
+     * Test recommend with all 6 personas.
+     */
+    public function test_recommend_works_with_all_six_personas(): void
+    {
+        // Arrange
+        $personas = ['makcik', 'gymbro', 'atas', 'tauke', 'matmotor', 'corporate'];
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Persona-specific response'],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 100],
+            ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        foreach ($personas as $persona) {
+            // Act
+            $result = $this->service->recommend('Where to eat?', $persona, $places);
+
+            // Assert
+            $this->assertInstanceOf(RecommendationDTO::class, $result);
+            $this->assertEquals($persona, $result->persona);
+            $this->assertFalse($result->isFallback());
+        }
+    }
+
+    /**
+     * Test edge case: API returns empty text.
+     */
+    public function test_api_returns_empty_text(): void
+    {
+        // Arrange
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => ''],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 10],
+            ], 200),
+        ]);
+
+        $places = collect([Place::factory()->make()]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'atas', $places);
+
+        // Assert: Empty text should be handled
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertEquals('', $result->recommendation);
+    }
+
+    /**
+     * Test edge case: Large number of places (token optimization).
+     */
+    public function test_recommend_with_many_places(): void
+    {
+        // Arrange
+        $places = collect();
+        for ($i = 0; $i < 50; $i++) {
+            $places->push(Place::factory()->make(['name' => "Restaurant {$i}"]));
+        }
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Response with many places'],
+                            ],
+                        ],
+                    ],
+                ],
+                'usageMetadata' => ['totalTokenCount' => 5000],
+            ], 200),
+        ]);
+
+        // Act
+        $result = $this->service->recommend('Where to eat?', 'makcik', $places);
+
+        // Assert
+        $this->assertInstanceOf(RecommendationDTO::class, $result);
+        $this->assertGreaterThan(1000, $result->getTokensUsed());
     }
 }

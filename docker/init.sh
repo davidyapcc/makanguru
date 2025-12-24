@@ -40,6 +40,12 @@ until docker compose exec mysql mysqladmin ping -h"localhost" --silent; do
 done
 echo -e "${GREEN}✓ MySQL is ready${NC}"
 
+# Publish Livewire assets
+echo ""
+echo "Publishing Livewire assets..."
+docker compose exec app php artisan livewire:publish --assets --force
+echo -e "${GREEN}✓ Livewire assets published${NC}"
+
 # Run migrations
 echo ""
 echo "Running database migrations..."

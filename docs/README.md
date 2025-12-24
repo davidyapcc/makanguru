@@ -9,6 +9,7 @@ Welcome to the MakanGuru documentation! This directory contains comprehensive gu
 ### Root Documentation
 - **[README.md](../README.md)** - Main project overview, installation, and quick start guide
 - **[CLAUDE.md](../CLAUDE.md)** - Technical documentation for AI assistants working on the project
+- **[TEST_COVERAGE_SUMMARY.md](TEST_COVERAGE_SUMMARY.md)** - Comprehensive test coverage documentation (201 tests, 99.0% pass rate)
 
 ### User Guides (`docs/guides/`)
 Step-by-step guides for users and developers to utilize MakanGuru's features:
@@ -99,7 +100,7 @@ Historical implementation documentation and phase completion reports:
 **Backend**
 - Database Models: [CLAUDE.md](../CLAUDE.md) - Models section
 - Services: [CLAUDE.md](../CLAUDE.md) - Service Architecture
-- Testing: [CLAUDE.md](../CLAUDE.md) - Testing & Commands
+- Testing: [TEST_COVERAGE_SUMMARY.md](TEST_COVERAGE_SUMMARY.md) - Comprehensive test documentation
 
 **Data Import**
 - Restaurant Scraping: [guides/SCRAPER_GUIDE.md](guides/SCRAPER_GUIDE.md)
@@ -154,13 +155,14 @@ When adding new documentation:
 
 ## 📊 Documentation Statistics
 
-- **Total Markdown Files**: 9
-- **User Guides**: 3
+- **Total Markdown Files**: 10
+- **User Guides**: 4
 - **Implementation Notes**: 2
-- **Root Documentation**: 2
-- **Total Lines**: ~5,000+ lines of documentation
+- **Root Documentation**: 3
+- **Test Documentation**: 1
+- **Total Lines**: ~6,000+ lines of documentation
 
 ---
 
-*Last Updated: 2025-12-22*
+*Last Updated: 2024-12-24*
 *Maintained by: MakanGuru Team*

@@ -46,6 +46,10 @@ npm ci
 echo "🏗️  Building frontend assets..."
 npm run build
 
+# Publish Livewire assets
+echo "📡 Publishing Livewire assets..."
+php artisan livewire:publish --assets --force
+
 # Clear and cache config
 echo "⚙️  Optimizing configuration..."
 php artisan config:clear
