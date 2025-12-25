@@ -29,12 +29,17 @@ class GroqService implements AIRecommendationInterface
 
     /**
      * Fallback models to use for Groq.
+     * For OpenAI model: fallback to other OpenAI models
+     * For Meta model: fallback to other Meta models
      */
-    private const FALLBACK_MODELS = [
-        'llama-3.3-70b-versatile',
-        'llama-3.1-8b-instant',
+    private const FALLBACK_MODELS_OPENAI = [
         'openai/gpt-oss-120b',
         'openai/gpt-oss-20b',
+    ];
+
+    private const FALLBACK_MODELS_META = [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
     ];
 
     /**
@@ -139,20 +144,27 @@ class GroqService implements AIRecommendationInterface
     {
         $apiKey = config('services.groq.api_key');
 
-        // Use active model if set, otherwise use config, otherwise first fallback
-        $configuredModel = $this->activeModel ?? config('services.groq.models.default', self::FALLBACK_MODELS[0]);
+        // Use active model if set, otherwise use config
+        $configuredModel = $this->activeModel ?? config('services.groq.models.default', 'openai/gpt-oss-120b');
 
         if (empty($apiKey)) {
             throw new \Exception('Groq API key not configured. Set GROQ_API_KEY in .env');
         }
 
-        $modelsToTry = array_unique(array_merge([$configuredModel], self::FALLBACK_MODELS));
+        // Determine which fallback models to use based on the primary model
+        $fallbackModels = str_contains($configuredModel, 'openai/')
+            ? self::FALLBACK_MODELS_OPENAI
+            : self::FALLBACK_MODELS_META;
+
+        // Start with configured model, then try fallbacks of the same type
+        $modelsToTry = array_unique(array_merge([$configuredModel], $fallbackModels));
         $lastException = null;
 
         Log::debug('GroqService: Calling API', [
             'activeModel' => $this->activeModel,
             'configuredModel' => $configuredModel,
-            'modelsToTry' => $modelsToTry
+            'modelsToTry' => $modelsToTry,
+            'modelType' => str_contains($configuredModel, 'openai/') ? 'OpenAI' : 'Meta',
         ]);
 
         foreach ($modelsToTry as $modelIndex => $model) {

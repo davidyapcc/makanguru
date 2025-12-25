@@ -26,8 +26,9 @@ Built on a modern, monolithic architecture optimized for speed and developer exp
 * **Frontend:** [Livewire 3](https://livewire.laravel.com) + [Tailwind CSS](https://tailwindcss.com) + Alpine.js
 * **Database:** MySQL 8.0
 * **AI Engines:**
-  * Groq (OpenAI GPT, Meta Llama 3.3) (primary)
-  * Google Gemini 2.5 Flash (fallback)
+  * Groq (OpenAI GPT) - Primary model with automatic fallback
+  * Groq (Meta Llama 3.3) - Automatic fallback when primary fails
+  * Google Gemini 2.5 Flash (legacy support)
 * **Queue/Cache:** Redis
 * **Infrastructure:** AWS EC2 (Ubuntu 24.04), Nginx
 
@@ -357,9 +358,10 @@ npm run dev
    - 🏍️ **Mat Motor** - Late-night spots, easy parking, budget-friendly
    - 💼 **Corporate Slave** - Quick lunches, coffee quality, WiFi availability
 
-2. **Select AI Model** - Choose your preferred AI provider:
-   - 🧠 **GPT** (OpenAI via Groq) - High-quality responses (Default)
-   - 🦙 **Llama** (Meta via Groq) - Ultra-fast inference
+2. **AI Model** - Automatic intelligent fallback:
+   - 🧠 **Primary**: OpenAI GPT (via Groq) - High-quality responses
+   - 🦙 **Fallback**: Meta Llama (via Groq) - Automatically used if primary fails
+   - The system seamlessly switches between models to ensure reliability
 
    *Note: Requires GROQ_API_KEY in .env*
 
@@ -377,7 +379,7 @@ npm run dev
 5. **Interact**:
    - Chat history saved during session
    - Switch personas mid-conversation
-   - Switch AI models (when available)
+   - Automatic AI model failover (no manual switching needed)
    - Clear chat to start fresh
    - Real-time loading indicators
 
@@ -846,6 +848,7 @@ database/seeders/PlaceSeeder.php        # Real OpenStreetMap data (50-70 restaur
 ✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
 ✅ **Phase 6:** Share Your Vibe - Social Media Cards (Enhanced UI & Instagram Support)
 ✅ **Phase 7:** New Personas Enhancement (6 Personas + Smart Features)
+✅ **Phase 7.1:** Intelligent AI Model Fallback (Automatic OpenAI → Meta switching)
 ⏳ **Phase 8:** User Submissions (Next)
 
 ---

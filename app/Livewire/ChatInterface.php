@@ -93,7 +93,8 @@ class ChatInterface extends Component
      */
     public function mount(): void
     {
-        $this->currentModel = config('chat.default_model', 'groq-openai');
+        // Always start with OpenAI (Groq) model
+        $this->currentModel = 'groq-openai';
         $this->initializeRateLimiting();
         $this->trackPersonaUsage($this->currentPersona);
         $this->applyPersonaFilters($this->currentPersona);
@@ -197,7 +198,55 @@ class ChatInterface extends Component
                 'is_fallback' => $recommendation->isFallback(),
             ];
         } catch (\Exception $e) {
-            // Add error message to chat
+            // Check if we can fallback to Meta model
+            $canFallback = $this->currentModel === 'groq-openai' &&
+                          !empty(config('services.groq.api_key'));
+
+            if ($canFallback) {
+                logger()->warning('ChatInterface: OpenAI failed, falling back to Meta', [
+                    'error' => $e->getMessage(),
+                    'persona' => $this->currentPersona,
+                ]);
+
+                try {
+                    // Fallback to Meta model
+                    $this->currentModel = 'groq-meta';
+                    $places = $this->getFilteredPlaces();
+                    $metaService = $this->getAiService();
+
+                    $recommendation = $metaService->recommend(
+                        $this->userQuery,
+                        $this->currentPersona,
+                        $places
+                    );
+
+                    // Add AI response to history
+                    $this->chatHistory[] = [
+                        'role' => 'assistant',
+                        'content' => $recommendation->recommendation,
+                        'persona' => $this->currentPersona,
+                        'model' => $this->currentModel,
+                        'is_fallback' => $recommendation->isFallback(),
+                    ];
+
+                    logger()->info('ChatInterface: Successfully used Meta fallback');
+
+                    // Reset back to OpenAI for next request
+                    $this->currentModel = 'groq-openai';
+
+                    // Exit the catch block successfully
+                    return;
+                } catch (\Exception $metaError) {
+                    logger()->error('ChatInterface: Meta fallback also failed', [
+                        'error' => $metaError->getMessage(),
+                    ]);
+
+                    // Reset back to OpenAI
+                    $this->currentModel = 'groq-openai';
+                }
+            }
+
+            // If fallback failed or not available, show error message
             $this->chatHistory[] = [
                 'role' => 'assistant',
                 'content' => $this->getFallbackMessage($this->currentPersona),
@@ -280,16 +329,6 @@ class ChatInterface extends Component
             $hour >= 20 && $hour < 22 => '🧧 Dinner time! Tauke recommends efficient business-friendly places.',
             default => '👵 Anytime is makan time! Mak Cik is here to help.',
         };
-    }
-
-    /**
-     * Switch to a different AI model/provider.
-     */
-    public function switchModel(string $model): void
-    {
-        if (in_array($model, ['gemini', 'groq-openai', 'groq-meta'])) {
-            $this->currentModel = $model;
-        }
     }
 
     /**

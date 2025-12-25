@@ -38,15 +38,14 @@ Unlike traditional directory apps (Google Maps/Yelp), MakanGuru uses **AI Person
 - **Interactivity**: Alpine.js (micro-interactions)
 
 ### AI Integration
-- **Primary Provider**: Google Gemini 2.5 Flash (latest stable model)
-- **Alternative Providers**:
-  - Groq (OpenAI GPT via Groq Cloud)
-  - Groq (Meta Llama via Groq Cloud)
+- **Primary Provider**: Groq (OpenAI GPT) - Default for all requests
+- **Automatic Fallback**: Groq (Meta Llama 3.3) - Used when primary fails/rate-limited
+- **Legacy Support**: Google Gemini 2.5 Flash (available but not actively used)
 - **Method**: REST API (context injection pattern)
 - **API Versions**:
   - Gemini: v1 (stable endpoint)
   - Groq: OpenAI-compatible v1 endpoint
-- **Fallback**: Multi-model fallback with graceful degradation
+- **Intelligent Failover**: Automatic model switching without user intervention
 
 ### Infrastructure (Planned)
 - **Hosting**: AWS EC2 (Ubuntu 24.04)
@@ -419,7 +418,7 @@ database/factories/
    - ✅ Implemented properties: `$userQuery`, `$chatHistory`, `$currentPersona`, `$currentModel`, `$filterHalal`, `$filterPrice`, `$filterArea`
    - ✅ Dependency injection for `AIRecommendationInterface`
    - ✅ Type-safe validation with PHP 8.4 attributes
-   - ✅ Model switching functionality with `switchModel()` method
+   - ✅ Automatic model fallback (OpenAI → Meta) without user intervention
    - ✅ Session-based rate limiting (5 messages per 60 seconds)
 
 2. **Reusable Blade Components**
@@ -427,7 +426,7 @@ database/factories/
    - ✅ `loading-spinner.blade.php` - Persona-specific typing indicators
    - ✅ `restaurant-card.blade.php` - Place information display
    - ✅ `persona-switcher.blade.php` - Three-persona selection interface
-   - ✅ `model-selector.blade.php` - AI model/provider selection interface
+   - ✅ `model-selector.blade.php` - AI model/provider selection interface (deprecated in Phase 7.1)
    - ✅ `layouts/app.blade.php` - Main application layout
 
 3. **Alpine.js Micro-Interactions**
@@ -438,7 +437,7 @@ database/factories/
 
 4. **UI/UX Features**
    - ✅ Mobile-first responsive design
-   - ✅ Model selector with 3 AI providers (Gemini active, OpenAI/Meta via Groq coming soon)
+   - ✅ Automatic AI model failover (removed manual model selector in Phase 7.1)
    - ✅ Real-time filters (Halal, Price, Area) with `wire:model.live`
    - ✅ Loading states with `wire:loading`
    - ✅ Enter key to send (Shift+Enter for new line)
@@ -780,6 +779,66 @@ docs/
 - Added smart Instagram sharing with mobile/desktop detection
 - Improved toast notifications (centered, better animations)
 - Enhanced button visual hierarchy and user experience
+
+---
+
+## Phase 7.1 Implementation Status ✅
+
+### Completed Tasks
+
+**Phase 7.1: Intelligent AI Model Fallback System**
+
+1. **Removed Manual Model Selection**
+   - ✅ Removed AI model selector dropdown from chat interface
+   - ✅ Removed model badge display from settings bar
+   - ✅ Simplified UX by hiding technical complexity from users
+
+2. **Automatic Fallback Logic**
+   - ✅ Default model: OpenAI GPT (via Groq)
+   - ✅ Automatic fallback to Meta Llama when OpenAI fails or hits rate limits
+   - ✅ Seamless model switching without user intervention
+   - ✅ Automatic reset to primary model for next request
+
+3. **Enhanced Service Layer**
+   - ✅ Updated `ChatInterface::sendMessage()` with intelligent fallback
+   - ✅ Separate fallback model arrays in `GroqService`:
+     - `FALLBACK_MODELS_OPENAI`: Other OpenAI models
+     - `FALLBACK_MODELS_META`: Other Meta models
+   - ✅ Smart fallback selection based on primary model type
+   - ✅ Enhanced logging for debugging and monitoring
+
+4. **Fallback Flow**
+   ```
+   User Query
+      ↓
+   OpenAI GPT (Primary)
+      ↓ (on error/rate limit)
+   Meta Llama (Automatic Fallback)
+      ↓ (on error)
+   Persona-specific Fallback Message
+   ```
+
+### Files Modified in Phase 7.1
+
+```
+resources/views/livewire/
+└── chat-interface.blade.php ✅ (removed model selector UI)
+
+app/Livewire/
+└── ChatInterface.php ✅ (automatic fallback logic, removed switchModel method)
+
+app/Services/
+└── GroqService.php ✅ (separate fallback arrays, smart model selection)
+```
+
+### Benefits
+
+- ✅ **Simplified UX**: No confusing model selector for users
+- ✅ **Automatic Resilience**: Seamless fallback without user intervention
+- ✅ **Better Reliability**: Two layers of AI models ensure higher success rate
+- ✅ **Cost Optimization**: Starts with GPT (better quality), falls back to Llama (faster/cheaper)
+- ✅ **Transparent Logging**: All fallback attempts are logged for monitoring
+- ✅ **User-Friendly**: Users never see "model selection" complexity
 
 ---
 
@@ -1580,7 +1639,8 @@ chmod -R 775 storage bootstrap/cache
 **Phase 2**: ✅ **COMPLETE**
 - Clean service architecture implemented
 - 6 Malaysian AI personas (Mak Cik, Gym Bro, Atas, Tauke, Mat Motor, Corporate Slave)
-- Gemini 2.5 Flash API integration
+- Groq API integration (OpenAI GPT + Meta Llama)
+- Gemini 2.5 Flash API integration (legacy support)
 - Comprehensive error handling with fallback responses
 - CLI testing commands created
 - **201 unit/feature tests passing (540+ assertions, 99.0% pass rate)**
@@ -1588,13 +1648,13 @@ chmod -R 775 storage bootstrap/cache
 - **Test Environment**: Seeders disabled in tests for isolation
 
 **API Configuration:**
-- Model Fallback System: 4 models (gemini-2.5-flash → gemini-2.0-flash → gemini-2.5-flash-lite → gemini-2.0-flash-lite)
-- Primary Model: gemini-2.5-flash (latest stable)
-- Endpoint: v1 (not v1beta)
-- Max Output Tokens: 10000
+- **Primary Model**: OpenAI GPT (via Groq) - Default for all requests
+- **Automatic Fallback**: Meta Llama (via Groq) - Used when primary fails/rate-limited
+- **Intelligent Failover**: Seamless model switching without user intervention
+- Max Output Tokens: 2048 (Groq), 10000 (Gemini)
 - Retry Logic: Exponential backoff (2 retries per model)
 - Rate Limit Handling: Automatic model switching on 429 errors
-- Safety Settings: All 4 categories configured
+- Endpoint: OpenAI-compatible v1 (Groq)
 
 **Testing Commands:**
 ```bash
@@ -1610,14 +1670,14 @@ php artisan test
   - `loading-spinner` - Persona-specific loading states
   - `restaurant-card` - Place display component
   - `persona-switcher` - Three persona selection UI
-  - `model-selector` - AI model/provider selection (Gemini, OpenAI via Groq, Meta via Groq)
+  - `model-selector` - AI model/provider selection (deprecated in Phase 7.1)
 - Alpine.js micro-interactions (built-in via Livewire 3):
   - Auto-scroll to latest message
   - Smooth fadeIn animations for chat bubbles
-- Model selection with future Groq integration support:
-  - Currently active: Google Gemini
-  - Coming soon: OpenAI GPT via Groq, Meta Llama via Groq
-  - Visual status indicators and disabled state for unreleased models
+- Automatic AI model failover (implemented in Phase 7.1):
+  - Primary: OpenAI GPT via Groq
+  - Fallback: Meta Llama via Groq
+  - Seamless switching without user intervention
 - Responsive filters (Halal, Price, Area)
 - Real-time chat history management with model tracking
 - Enter key to send (Shift+Enter for new line)
@@ -1859,6 +1919,22 @@ Documentation:
 ```
 
 **Total Changes**: 7 files modified, ~500 lines of code
+
+**Phase 7.1**: ✅ **COMPLETE** (December 2024)
+- Removed manual AI model selector from UI
+- Implemented automatic OpenAI → Meta fallback
+- Simplified UX by hiding technical complexity
+- Enhanced service layer with intelligent model switching
+- Improved reliability with seamless failover
+
+**Files Modified in Phase 7.1:**
+```
+├── resources/views/livewire/chat-interface.blade.php ✅ (removed model selector)
+├── app/Livewire/ChatInterface.php ✅ (automatic fallback logic)
+└── app/Services/GroqService.php ✅ (separate fallback arrays)
+```
+
+**Total Changes**: 3 files modified, ~80 lines of code
 
 ---
 
