@@ -22,28 +22,34 @@ class CleanupSocialCardsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'makanguru:cleanup-cards';
+    protected $signature = 'makanguru:cleanup-cards {--days=7 : Number of days to keep files. 0 to delete all.}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Clean up old social media cards (older than 7 days)';
+    protected $description = 'Clean up old social media cards';
 
     /**
      * Execute the console command.
      */
     public function handle(SocialCardService $cardService): int
     {
-        $this->info('Cleaning up old social cards...');
+        $days = (int) $this->option('days');
 
-        $deleted = $cardService->cleanupOldCards();
+        if ($days === 0) {
+            $this->info('Cleaning up ALL social cards...');
+        } else {
+            $this->info("Cleaning up social cards older than {$days} days...");
+        }
+
+        $deleted = $cardService->cleanupOldCards($days);
 
         if ($deleted > 0) {
-            $this->info("Successfully deleted {$deleted} old social card(s).");
+            $this->info("Successfully deleted {$deleted} social card(s).");
         } else {
-            $this->info('No old social cards found to delete.');
+            $this->info('No social cards found to delete.');
         }
 
         return Command::SUCCESS;

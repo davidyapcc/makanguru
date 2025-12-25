@@ -48,6 +48,6 @@ return [
     |
     */
 
-    'default_model' => env('CHAT_DEFAULT_MODEL', 'gemini'),
+    'default_model' => env('CHAT_DEFAULT_MODEL', 'groq-openai'),
 
 ];

@@ -700,31 +700,45 @@ docs/
 
 1. **Social Card Generation Service**
    - ✅ Created `SocialCardService` for SVG card generation
-   - ✅ Persona-specific styling (Mak Cik, Gym Bro, Atas Friend)
+   - ✅ Persona-specific styling (all 6 personas)
    - ✅ 1200×630px cards optimized for social media
-   - ✅ Automatic text wrapping and XML-safe escaping
+   - ✅ Improved text wrapping and line limiting (max 6 lines for recommendation, 2 for query)
+   - ✅ Fixed overlapping text issues with proper spacing
    - ✅ Gradient backgrounds with persona colors
+   - ✅ Better typography (19px recommendation, 20px query)
 
 2. **Chat Interface Integration**
    - ✅ Share button on all AI responses
-   - ✅ Card preview modal with sharing options
+   - ✅ Card preview modal with reorganized sharing options
    - ✅ Download SVG functionality
-   - ✅ Copy link to clipboard
-   - ✅ Direct sharing to WhatsApp, Facebook, Twitter/X, Telegram
+   - ✅ Copy link to clipboard with centered toast notifications
+   - ✅ Direct sharing to WhatsApp, Facebook, Twitter/X, Telegram, Instagram
 
-3. **Social Media Optimization**
+3. **Enhanced Social Sharing UI (December 2024)**
+   - ✅ **Industry-standard three-tier layout**:
+     - Primary: WhatsApp (large, prominent button)
+     - Secondary: 4-column social grid (Facebook, X, Telegram, Instagram)
+     - Tertiary: Utility actions (Download, Copy Link) in separate section
+   - ✅ Instagram smart sharing:
+     - Mobile: Auto-downloads + attempts to open Instagram app
+     - Desktop: Beautiful instruction modal with step-by-step guide
+   - ✅ Improved button visual hierarchy and hover effects
+   - ✅ Better section labeling ("Or share on:", "Quick actions:")
+   - ✅ Responsive design with proper mobile/desktop breakpoints
+
+4. **Social Media Optimization**
    - ✅ Open Graph meta tags (Facebook, LinkedIn)
    - ✅ Twitter Card meta tags
    - ✅ SEO optimization (keywords, description, canonical URLs)
    - ✅ Theme color for mobile browsers
 
-4. **Storage & Cleanup**
+5. **Storage & Cleanup**
    - ✅ Public storage for generated cards
    - ✅ `CleanupSocialCardsCommand` for automatic deletion (7+ days)
    - ✅ UUID-based filenames for security
    - ✅ Storage link created for public access
 
-5. **Testing & Documentation**
+6. **Testing & Documentation**
    - ✅ Created `SocialCardServiceTest.php` - 13 tests, 45 assertions
    - ✅ Created `SocialCardSharingTest.php` - 8 tests, 18 assertions
    - ✅ All 59 tests passing (159 total assertions)
@@ -743,7 +757,7 @@ app/
 
 resources/views/
 └── components/
-    └── social-card-modal.blade.php ✅ (165 lines)
+    └── social-card-modal.blade.php ✅ (375 lines - enhanced with Instagram modal & toast)
 
 tests/
 ├── Unit/
@@ -758,7 +772,14 @@ docs/
     └── SOCIAL_SHARING_GUIDE.md ✅ (550+ lines)
 ```
 
-**Total Lines of Code:** ~2,380 lines (service + commands + UI + tests + docs)
+**Total Lines of Code:** ~2,590 lines (service + commands + enhanced UI + tests + docs)
+
+**Recent Enhancements (December 2024):**
+- Fixed SVG card text overlapping issues
+- Reorganized social sharing buttons following industry best practices
+- Added smart Instagram sharing with mobile/desktop detection
+- Improved toast notifications (centered, better animations)
+- Enhanced button visual hierarchy and user experience
 
 ---
 

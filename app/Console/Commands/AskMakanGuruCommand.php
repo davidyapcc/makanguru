@@ -18,7 +18,7 @@ class AskMakanGuruCommand extends Command
     protected $signature = 'makanguru:ask
                             {query : Your food query (e.g., "I want nasi lemak in Damansara")}
                             {--persona=makcik : The AI persona to use (makcik|gymbro|atas|tauke|matmotor|corporate)}
-                            {--model=gemini : The AI model to use (gemini|groq-openai|groq-meta)}
+                            {--model=groq-openai : The AI model to use (gemini|groq-openai|groq-meta)}
                             {--area= : Optional: Filter by area}
                             {--halal : Optional: Only show halal places}
                             {--price= : Optional: Filter by price (budget|moderate|expensive)}';

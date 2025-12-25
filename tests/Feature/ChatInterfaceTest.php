@@ -22,7 +22,7 @@ class ChatInterfaceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.gemini.api_key' => 'fake-api-key-for-testing']);
+        config(['services.groq.api_key' => 'fake-api-key-for-testing']);
     }
 
     /**
@@ -51,15 +51,15 @@ class ChatInterfaceTest extends TestCase
     }
 
     /**
-     * Test default model is gemini.
+     * Test default model is groq-openai.
      */
-    public function test_default_model_is_gemini(): void
+    public function test_default_model_is_groq_openai(): void
     {
         // Act
         $component = Livewire::test(ChatInterface::class);
 
         // Assert
-        $component->assertSet('currentModel', 'gemini');
+        $component->assertSet('currentModel', 'groq-openai');
     }
 
     /**
@@ -84,17 +84,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Go to Village Park!'],
-                            ],
+                        'message' => [
+                            'content' => 'Go to Village Park!',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 100],
+                'usage' => [
+                    'total_tokens' => 100,
+                    'prompt_tokens' => 50,
+                    'completion_tokens' => 50,
+                ],
             ], 200),
         ]);
 
@@ -166,17 +169,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'AI response'],
-                            ],
+                        'message' => [
+                            'content' => 'AI response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -201,17 +207,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Response'],
-                            ],
+                        'message' => [
+                            'content' => 'Response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -236,17 +245,20 @@ class ChatInterfaceTest extends TestCase
         Place::factory()->create(['is_halal' => false, 'name' => 'Non-Halal Place']);
 
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Filtered response'],
-                            ],
+                        'message' => [
+                            'content' => 'Filtered response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -271,17 +283,20 @@ class ChatInterfaceTest extends TestCase
         Place::factory()->create(['price' => 'expensive']);
 
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Budget places'],
-                            ],
+                        'message' => [
+                            'content' => 'Budget places',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -306,17 +321,20 @@ class ChatInterfaceTest extends TestCase
         Place::factory()->create(['area' => 'KLCC']);
 
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Bangsar places'],
-                            ],
+                        'message' => [
+                            'content' => 'Bangsar places',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -344,17 +362,20 @@ class ChatInterfaceTest extends TestCase
         ]);
 
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Filtered response'],
-                            ],
+                        'message' => [
+                            'content' => 'Filtered response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -378,17 +399,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Response'],
-                            ],
+                        'message' => [
+                            'content' => 'Response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -430,17 +454,20 @@ class ChatInterfaceTest extends TestCase
 
             // Setup fresh HTTP mock for each iteration
             Http::fake([
-                'generativelanguage.googleapis.com/*' => Http::response([
-                    'candidates' => [
+                'api.groq.com/*' => Http::response([
+                    'choices' => [
                         [
-                            'content' => [
-                                'parts' => [
-                                    ['text' => "Persona response for {$persona}"],
-                                ],
+                            'message' => [
+                                'content' => "Persona response for {$persona}",
+                                'role' => 'assistant',
                             ],
                         ],
                     ],
-                    'usageMetadata' => ['totalTokenCount' => 50],
+                    'usage' => [
+                        'total_tokens' => 50,
+                        'prompt_tokens' => 25,
+                        'completion_tokens' => 25,
+                    ],
                 ], 200),
             ]);
 
@@ -466,17 +493,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange: No places
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'No places available'],
-                            ],
+                        'message' => [
+                            'content' => 'No places available',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 20],
+                'usage' => [
+                    'total_tokens' => 20,
+                    'prompt_tokens' => 10,
+                    'completion_tokens' => 10,
+                ],
             ], 200),
         ]);
 
@@ -497,7 +527,7 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response(['error' => 'API Error'], 500),
+            'api.groq.com/*' => Http::response(['error' => 'API Error'], 500),
         ]);
 
         Place::factory()->create();
@@ -522,17 +552,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Response'],
-                            ],
+                        'message' => [
+                            'content' => 'Response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -579,17 +612,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Response with special chars'],
-                            ],
+                        'message' => [
+                            'content' => 'Response with special chars',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -612,17 +648,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Sedap! 😋'],
-                            ],
+                        'message' => [
+                            'content' => 'Sedap! 😋',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -647,17 +686,20 @@ class ChatInterfaceTest extends TestCase
         Place::factory()->count(3)->create();
 
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'All places'],
-                            ],
+                        'message' => [
+                            'content' => 'All places',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -679,17 +721,20 @@ class ChatInterfaceTest extends TestCase
     {
         // Arrange
         Http::fake([
-            'generativelanguage.googleapis.com/*' => Http::response([
-                'candidates' => [
+            'api.groq.com/*' => Http::response([
+                'choices' => [
                     [
-                        'content' => [
-                            'parts' => [
-                                ['text' => 'Response'],
-                            ],
+                        'message' => [
+                            'content' => 'Response',
+                            'role' => 'assistant',
                         ],
                     ],
                 ],
-                'usageMetadata' => ['totalTokenCount' => 50],
+                'usage' => [
+                    'total_tokens' => 50,
+                    'prompt_tokens' => 25,
+                    'completion_tokens' => 25,
+                ],
             ], 200),
         ]);
 
@@ -703,7 +748,7 @@ class ChatInterfaceTest extends TestCase
         // Assert: Assistant message should have model info
         $history = $component->get('chatHistory');
         $this->assertArrayHasKey('model', $history[1]);
-        $this->assertEquals('gemini', $history[1]['model']);
+        $this->assertEquals('groq-openai', $history[1]['model']);
     }
 
     /**
@@ -716,7 +761,7 @@ class ChatInterfaceTest extends TestCase
 
         // Assert: Default values
         $component->assertSet('currentPersona', 'makcik');
-        $component->assertSet('currentModel', 'gemini');
+        $component->assertSet('currentModel', 'groq-openai');
         $component->assertSet('filterHalal', false);
         $component->assertSet('filterPrice', null);
         $component->assertSet('filterArea', null);

@@ -38,13 +38,13 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => 'Where to get nasi lemak?',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => 'Go to Village Park! Best nasi lemak in town!',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                     'is_fallback' => false,
                 ],
             ]);
@@ -71,7 +71,7 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => 'Where to eat?',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 
@@ -91,7 +91,7 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'assistant',
                     'content' => 'Test message',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 
@@ -111,13 +111,13 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => 'Where to eat?',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => 'Try this place!',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 
@@ -142,13 +142,13 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => $userQuery,
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => $recommendation,
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 
@@ -175,13 +175,13 @@ class SocialCardSharingTest extends TestCase
                         'role' => 'user',
                         'content' => 'Where to eat?',
                         'persona' => $persona,
-                        'model' => 'gemini',
+                        'model' => 'groq-openai',
                     ],
                     [
                         'role' => 'assistant',
                         'content' => 'Great food here!',
                         'persona' => $persona,
-                        'model' => 'gemini',
+                        'model' => 'groq-openai',
                     ],
                 ]);
 
@@ -204,13 +204,13 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => 'Where to eat?',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => 'Try this place!',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 
@@ -233,25 +233,25 @@ class SocialCardSharingTest extends TestCase
                     'role' => 'user',
                     'content' => 'First question?',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => 'First answer',
                     'persona' => 'makcik',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'user',
                     'content' => 'Second question?',
                     'persona' => 'gymbro',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
                 [
                     'role' => 'assistant',
                     'content' => 'Second answer',
                     'persona' => 'gymbro',
-                    'model' => 'gemini',
+                    'model' => 'groq-openai',
                 ],
             ]);
 

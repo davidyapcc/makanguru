@@ -29,12 +29,11 @@
                 <div class="flex items-center gap-2">
                     @php
                         $modelNames = [
-                            'gemini' => 'Gemini',
                             'groq-openai' => 'GPT',
                             'groq-meta' => 'Llama'
                         ];
                     @endphp
-                    <span class="px-1.5 py-0.5 bg-blue-100 text-[10px] text-blue-700 rounded-full font-medium">{{ $modelNames[$currentModel] ?? 'Gemini' }}</span>
+                    <span class="px-1.5 py-0.5 bg-blue-100 text-[10px] text-blue-700 rounded-full font-medium">{{ $modelNames[$currentModel] ?? 'GPT' }}</span>
                     @if($filterHalal)
                         <span class="px-1.5 py-0.5 bg-green-100 text-[10px] text-green-700 rounded-full font-medium">Halal</span>
                     @endif
@@ -67,7 +66,6 @@
                     wire:model.live="currentModel"
                     class="text-xs border-gray-300 rounded-lg focus:ring-[--color-sky-blue] focus:border-[--color-sky-blue] font-medium"
                 >
-                    <option value="gemini">🤖 Gemini (Google)</option>
                     @if(!empty(config('services.groq.api_key')))
                         <option value="groq-openai">🧠 GPT (OpenAI via Groq)</option>
                         <option value="groq-meta">🦙 Llama (Meta via Groq)</option>

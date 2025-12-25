@@ -48,8 +48,8 @@ This guide provides step-by-step instructions for deploying MakanGuru to AWS EC2
 
 Prepare the following before deployment:
 - **EC2 SSH key pair** (.pem file)
-- **GEMINI_API_KEY** from https://ai.google.dev/
-- **GROQ_API_KEY** (optional) from https://console.groq.com/
+- **GROQ_API_KEY** from https://console.groq.com/
+- **GEMINI_API_KEY** (optional) from https://ai.google.dev/
 - **MySQL root password** (create a strong password)
 - **Database password** for application user
 
@@ -184,9 +184,9 @@ REDIS_PASSWORD=null
 REDIS_PORT=6379
 
 # AI Configuration
-GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key  # Optional
-AI_PROVIDER=gemini
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key  # Optional
+AI_PROVIDER=groq
 ```
 
 ### 3. Run Initial Deployment

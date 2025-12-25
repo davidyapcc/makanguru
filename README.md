@@ -26,8 +26,8 @@ Built on a modern, monolithic architecture optimized for speed and developer exp
 * **Frontend:** [Livewire 3](https://livewire.laravel.com) + [Tailwind CSS](https://tailwindcss.com) + Alpine.js
 * **Database:** MySQL 8.0
 * **AI Engines:**
-  * Google Gemini 2.5 Flash (primary)
-  * Groq (Meta Llama 3.3, OpenAI GPT) (alternative)
+  * Groq (OpenAI GPT, Meta Llama 3.3) (primary)
+  * Google Gemini 2.5 Flash (fallback)
 * **Queue/Cache:** Redis
 * **Infrastructure:** AWS EC2 (Ubuntu 24.04), Nginx
 
@@ -108,8 +108,8 @@ cp .env.docker .env
 
 # 3. Configure API keys in .env (REQUIRED)
 # Edit .env and set:
-#   GEMINI_API_KEY=your_actual_api_key_here
-#   GROQ_API_KEY=your_groq_api_key_here (optional)
+#   GROQ_API_KEY=your_groq_api_key_here
+#   GEMINI_API_KEY=your_gemini_api_key_here (optional/fallback)
 
 # 4. Start Docker services
 docker compose up -d
@@ -200,16 +200,16 @@ DB_DATABASE=makanguru
 DB_USERNAME=root
 DB_PASSWORD=
 
-# Google Gemini AI (Required)
-# Get your API key from: https://ai.google.dev/
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Groq AI (Optional - for alternative models)
+# Groq AI (Required for default)
 # Get your API key from: https://console.groq.com/
 GROQ_API_KEY=your_groq_api_key_here
 
+# Google Gemini AI (Optional/Fallback)
+# Get your API key from: https://ai.google.dev/
+GEMINI_API_KEY=your_gemini_api_key_here
+
 # Optional: Set default AI provider (gemini|groq)
-AI_PROVIDER=gemini
+AI_PROVIDER=groq
 
 # Chat Configuration
 # Rate limiting: Maximum messages per time window (default: 5)
@@ -251,14 +251,14 @@ npm run dev
 You can test the AI integration directly via Artisan command without using the UI:
 
 ```bash
-# Test with default model (Gemini)
+# Test with default model (Groq/OpenAI)
 php artisan makanguru:ask "I want nasi lemak in Damansara" --persona="makcik"
 
 # Test with Groq (Meta Llama)
 php artisan makanguru:ask "Where to get spicy food?" --model=groq-meta --persona=gymbro
 
-# Test with Groq (OpenAI GPT)
-php artisan makanguru:ask "Instagram-worthy cafe" --model=groq-openai --persona=atas
+# Test with Gemini (Fallback)
+php artisan makanguru:ask "Instagram-worthy cafe" --model=gemini --persona=atas
 
 # List available Groq models
 php artisan groq:list-models
@@ -358,11 +358,10 @@ npm run dev
    - 💼 **Corporate Slave** - Quick lunches, coffee quality, WiFi availability
 
 2. **Select AI Model** - Choose your preferred AI provider:
-   - 🤖 **Gemini** (Google) - Fast and cost-effective
-   - 🧠 **GPT** (OpenAI via Groq) - High-quality responses
+   - 🧠 **GPT** (OpenAI via Groq) - High-quality responses (Default)
    - 🦙 **Llama** (Meta via Groq) - Ultra-fast inference
 
-   *Note: Groq models require GROQ_API_KEY in .env*
+   *Note: Requires GROQ_API_KEY in .env*
 
 3. **Apply Filters** (Optional):
    - ✓ Halal Only
@@ -845,7 +844,7 @@ database/seeders/PlaceSeeder.php        # Real OpenStreetMap data (50-70 restaur
 ✅ **Phase 3:** Modern UI/UX (including Rate Limiting)
 ✅ **Phase 4:** Production Deployment
 ✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
-✅ **Phase 6:** Share Your Vibe - Social Media Cards
+✅ **Phase 6:** Share Your Vibe - Social Media Cards (Enhanced UI & Instagram Support)
 ✅ **Phase 7:** New Personas Enhancement (6 Personas + Smart Features)
 ⏳ **Phase 8:** User Submissions (Next)
 

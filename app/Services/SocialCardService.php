@@ -105,8 +105,9 @@ class SocialCardService
         $personaName = self::PERSONA_NAMES[$persona] ?? 'MakanGuru';
 
         // Truncate recommendation if too long (for visual appeal)
-        $displayRecommendation = Str::limit($recommendation, 280, '...');
-        $displayQuery = Str::limit($userQuery, 100, '...');
+        // Limit to ~350 chars to fit within 5-6 lines
+        $displayRecommendation = Str::limit($recommendation, 350, '...');
+        $displayQuery = Str::limit($userQuery, 80, '...');
 
         // Generate SVG
         $svg = $this->generateSvg(
@@ -146,9 +147,18 @@ class SocialCardService
         $query = htmlspecialchars($query, ENT_XML1, 'UTF-8');
         $personaName = htmlspecialchars($personaName, ENT_XML1, 'UTF-8');
 
-        // Word wrap for better display
-        $wrappedRecommendation = $this->wrapText($recommendation, 70);
-        $wrappedQuery = $this->wrapText($query, 50);
+        // Word wrap for better display (shorter lines for better readability)
+        $wrappedRecommendation = $this->wrapText($recommendation, 85);
+        $wrappedQuery = $this->wrapText($query, 60);
+
+        // Limit lines to prevent overflow
+        $recommendationLines = explode("\n", $wrappedRecommendation);
+        $recommendationLines = array_slice($recommendationLines, 0, 6); // Max 6 lines
+        $wrappedRecommendation = implode("\n", $recommendationLines);
+
+        $queryLines = explode("\n", $wrappedQuery);
+        $queryLines = array_slice($queryLines, 0, 2); // Max 2 lines
+        $wrappedQuery = implode("\n", $queryLines);
 
         $width = self::CARD_WIDTH;
         $height = self::CARD_HEIGHT;
@@ -173,32 +183,30 @@ class SocialCardService
   <!-- Content Container -->
   <g filter="url(#shadow)">
     <!-- Header -->
-    <rect x="60" y="60" width="1080" height="100" fill="white" rx="20" opacity="0.95"/>
-    <text x="100" y="125" font-family="Arial, sans-serif" font-size="48" fill="{$colors['primary']}" font-weight="bold">
+    <rect x="50" y="50" width="1100" height="90" fill="white" rx="15" opacity="0.95"/>
+    <text x="80" y="110" font-family="Arial, sans-serif" font-size="42" fill="{$colors['primary']}" font-weight="bold">
       {$avatar} {$personaName}
     </text>
 
     <!-- Query Section -->
-    <rect x="60" y="180" width="1080" height="auto" fill="white" rx="15" opacity="0.9"/>
-    <text x="100" y="230" font-family="Arial, sans-serif" font-size="20" fill="{$colors['text']}" font-weight="600">
+    <rect x="50" y="160" width="1100" height="90" fill="white" rx="12" opacity="0.9"/>
+    <text x="80" y="190" font-family="Arial, sans-serif" font-size="16" fill="{$colors['text']}" font-weight="600">
       YOUR QUESTION:
     </text>
-    <text x="100" y="270" font-family="Arial, sans-serif" font-size="24" fill="{$colors['primary']}" font-style="italic">
-      "{$wrappedQuery}"
-    </text>
+    {$this->generateTextLines($wrappedQuery, 80, 215, 20, $colors['primary'], true)}
 
     <!-- Recommendation Section -->
-    <rect x="60" y="320" width="1080" height="auto" fill="white" rx="15" opacity="0.95"/>
-    <text x="100" y="370" font-family="Arial, sans-serif" font-size="18" fill="{$colors['text']}" font-weight="600">
+    <rect x="50" y="270" width="1100" height="240" fill="white" rx="12" opacity="0.95"/>
+    <text x="80" y="300" font-family="Arial, sans-serif" font-size="16" fill="{$colors['text']}" font-weight="600">
       RECOMMENDATION:
     </text>
-    {$this->generateTextLines($wrappedRecommendation, 100, 410, 22, $colors['primary'])}
+    {$this->generateTextLines($wrappedRecommendation, 80, 330, 19, $colors['primary'], false)}
 
     <!-- Footer -->
-    <text x="600" y="580" font-family="Arial, sans-serif" font-size="28" fill="{$colors['accent']}" font-weight="bold" text-anchor="middle">
+    <text x="600" y="560" font-family="Arial, sans-serif" font-size="26" fill="{$colors['accent']}" font-weight="bold" text-anchor="middle">
       MakanGuru.my
     </text>
-    <text x="600" y="610" font-family="Arial, sans-serif" font-size="16" fill="{$colors['text']}" text-anchor="middle">
+    <text x="600" y="590" font-family="Arial, sans-serif" font-size="15" fill="{$colors['text']}" text-anchor="middle">
       AI-Powered Malaysian Food Recommendations
     </text>
   </g>
@@ -226,22 +234,36 @@ SVG;
      * @param int $y The starting y position
      * @param int $fontSize The font size
      * @param string $color The text color
+     * @param bool $italic Whether to use italic style
      * @return string The SVG text elements
      */
-    private function generateTextLines(string $text, int $x, int $y, int $fontSize, string $color): string
+    private function generateTextLines(string $text, int $x, int $y, int $fontSize, string $color, bool $italic = false): string
     {
         $lines = explode("\n", $text);
         $svg = '';
-        $lineHeight = $fontSize + 8;
+        $lineHeight = $fontSize + 6;
+        $fontStyle = $italic ? 'italic' : 'normal';
 
         foreach ($lines as $index => $line) {
+            // Skip empty lines
+            if (trim($line) === '') {
+                continue;
+            }
+
             $currentY = $y + ($index * $lineHeight);
+
+            // Add quote marks for query text
+            if ($italic) {
+                $line = '"' . trim($line) . '"';
+            }
+
             $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="%d" fill="%s">%s</text>' . "\n    ",
+                '<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="%d" fill="%s" font-style="%s">%s</text>' . "\n    ",
                 $x,
                 $currentY,
                 $fontSize,
                 $color,
+                $fontStyle,
                 htmlspecialchars($line, ENT_XML1, 'UTF-8')
             );
         }
@@ -268,19 +290,28 @@ SVG;
      */
     public function getCardUrl(string $filename): string
     {
-        return Storage::disk('public')->url($filename);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+
+        return $disk->url($filename);
     }
 
     /**
-     * Clean up old social cards (older than 7 days).
+     * Clean up old social cards.
      *
+     * @param int $days Number of days to keep cards. 0 to delete all.
      * @return int Number of cards deleted
      */
-    public function cleanupOldCards(): int
+    public function cleanupOldCards(int $days = 7): int
     {
         $files = Storage::disk('public')->files('social-cards');
         $deleted = 0;
-        $cutoffTime = now()->subDays(7)->timestamp;
+
+        // If days is 0, we delete everything, so set cutoff to now (or future)
+        // If days > 0, we set cutoff to now - days
+        $cutoffTime = $days === 0
+            ? now()->addHour()->timestamp
+            : now()->subDays($days)->timestamp;
 
         foreach ($files as $file) {
             if (Storage::disk('public')->lastModified($file) < $cutoffTime) {

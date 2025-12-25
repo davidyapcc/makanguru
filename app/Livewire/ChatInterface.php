@@ -33,7 +33,7 @@ class ChatInterface extends Component
     /**
      * Current AI model/provider (gemini|groq-openai|groq-meta).
      */
-    public string $currentModel = 'gemini';
+    public string $currentModel;
 
     /**
      * Chat history array.
@@ -93,8 +93,10 @@ class ChatInterface extends Component
      */
     public function mount(): void
     {
+        $this->currentModel = config('chat.default_model', 'groq-openai');
         $this->initializeRateLimiting();
         $this->trackPersonaUsage($this->currentPersona);
+        $this->applyPersonaFilters($this->currentPersona);
     }
 
     /**

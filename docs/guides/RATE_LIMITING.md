@@ -48,8 +48,8 @@ CHAT_RATE_LIMIT_WINDOW=60
 # Default persona: makcik, gymbro, or atas (default: makcik)
 CHAT_DEFAULT_PERSONA=makcik
 
-# Default AI model: gemini, groq-openai, or groq-meta (default: gemini)
-CHAT_DEFAULT_MODEL=gemini
+# Default AI model: gemini, groq-openai, or groq-meta (default: groq-openai)
+CHAT_DEFAULT_MODEL=groq-openai
 ```
 
 ### Configuration File
@@ -63,7 +63,7 @@ return [
         'window_seconds' => env('CHAT_RATE_LIMIT_WINDOW', 60),
     ],
     'default_persona' => env('CHAT_DEFAULT_PERSONA', 'makcik'),
-    'default_model' => env('CHAT_DEFAULT_MODEL', 'gemini'),
+    'default_model' => env('CHAT_DEFAULT_MODEL', 'groq-openai'),
 ];
 ```
 

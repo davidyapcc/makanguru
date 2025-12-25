@@ -38,11 +38,11 @@ class AIServiceProvider extends ServiceProvider
         // Bind the AIRecommendationInterface based on configuration
         // This remains for backward compatibility or default usage
         $this->app->bind(AIRecommendationInterface::class, function ($app) {
-            $provider = env('AI_PROVIDER', 'gemini');
+            $provider = env('AI_PROVIDER', 'groq');
 
             return match ($provider) {
-                'groq' => $app->make(GroqService::class),
-                default => $app->make(GeminiService::class),
+                'gemini' => $app->make(GeminiService::class),
+                default => $app->make(GroqService::class),
             };
         });
     }

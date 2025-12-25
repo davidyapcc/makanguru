@@ -1,18 +1,10 @@
-@props(['currentModel' => 'gemini'])
+@props(['currentModel' => 'groq-openai'])
 
 @php
     // Check API key availability to determine model status
-    $geminiAvailable = !empty(config('services.gemini.api_key'));
     $groqAvailable = !empty(config('services.groq.api_key'));
 
     $models = [
-        'gemini' => [
-            'name' => 'Gemini',
-            'provider' => 'Google',
-            'icon' => '🤖',
-            'color' => 'from-blue-500 to-blue-600',
-            'status' => $geminiAvailable ? 'active' : 'coming-soon',
-        ],
         'groq-openai' => [
             'name' => 'GPT',
             'provider' => 'OpenAI via Groq',
@@ -41,7 +33,7 @@
         <div class="flex items-center space-x-2">
             <div class="text-xs font-semibold text-gray-700">AI Model:</div>
             <div class="text-xs text-gray-500">
-                Currently: <span class="font-medium text-[--color-sky-blue]">{{ $models[$currentModel]['provider'] }}</span>
+                Currently: <span class="font-medium text-[--color-sky-blue]">{{ $models[$currentModel]['provider'] ?? $models['groq-openai']['provider'] }}</span>
             </div>
         </div>
         <svg
@@ -56,7 +48,7 @@
     </div>
 
     <div x-show="open" x-transition class="p-3 pt-0">
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
         @foreach($models as $modelKey => $model)
             <button
                 wire:click="switchModel('{{ $modelKey }}')"

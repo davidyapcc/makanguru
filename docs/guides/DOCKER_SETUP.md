@@ -68,8 +68,8 @@ cp .env.docker .env
 
 # 3. Configure API keys in .env (REQUIRED)
 # Edit .env and set:
-#   GEMINI_API_KEY=your_actual_api_key_here
-#   GROQ_API_KEY=your_groq_api_key_here (optional)
+#   GROQ_API_KEY=your_groq_api_key_here
+#   GEMINI_API_KEY=your_actual_api_key_here (optional/fallback)
 
 # 4. Start Docker services
 docker compose up -d
@@ -143,14 +143,14 @@ REDIS_HOST=redis       # Docker service name
 REDIS_PORT=6379
 
 # AI Configuration (REQUIRED)
-GEMINI_API_KEY=your_gemini_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Chat Settings
 CHAT_RATE_LIMIT_MAX=5
 CHAT_RATE_LIMIT_WINDOW=60
 CHAT_DEFAULT_PERSONA=makcik
-CHAT_DEFAULT_MODEL=gemini
+CHAT_DEFAULT_MODEL=groq-openai
 ```
 
 **Get API Keys:**
