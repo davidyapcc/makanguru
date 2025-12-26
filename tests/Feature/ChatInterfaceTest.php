@@ -762,7 +762,7 @@ class ChatInterfaceTest extends TestCase
         // Assert: Default values
         $component->assertSet('currentPersona', 'makcik');
         $component->assertSet('currentModel', 'groq-openai');
-        $component->assertSet('filterHalal', false);
+        $component->assertSet('filterHalal', true); // Mak Cik persona auto-enables halal filter
         $component->assertSet('filterPrice', null);
         $component->assertSet('filterArea', null);
         $component->assertSet('chatHistory', []);
