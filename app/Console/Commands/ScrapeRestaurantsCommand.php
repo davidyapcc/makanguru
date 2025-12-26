@@ -26,10 +26,13 @@ class ScrapeRestaurantsCommand extends Command
      */
     protected $signature = 'makanguru:scrape
                             {--source=overpass : Data source (overpass|manual)}
-                            {--area=Kuala Lumpur : Area to scrape (e.g., "Kuala Lumpur", "Petaling Jaya")}
+                            {--area=* : Area(s) to scrape. Use --area=all for all cities, or specify multiple: --area="KLCC" --area="Bangsar"}
                             {--radius=5000 : Radius in meters for geospatial search}
-                            {--limit=50 : Maximum number of results to fetch}
-                            {--dry-run : Preview results without saving to database}';
+                            {--limit=50 : Maximum number of results per area}
+                            {--batch-size=100 : Number of records to insert per database batch}
+                            {--dry-run : Preview results without saving to database}
+                            {--show-progress : Display detailed progress information}
+                            {--no-duplicates : Remove duplicate entries before saving}';
 
     /**
      * The console command description.
@@ -39,19 +42,14 @@ class ScrapeRestaurantsCommand extends Command
     protected $description = 'Scrape Malaysian restaurant data from online sources';
 
     /**
-     * Default coordinates for Malaysian cities
+     * Get city coordinates from config
      *
-     * @var array<string, array{lat: float, lng: float}>
+     * @return array<string, array{lat: float, lng: float}>
      */
-    private const CITY_COORDINATES = [
-        'Kuala Lumpur' => ['lat' => 3.1390, 'lng' => 101.6869],
-        'Petaling Jaya' => ['lat' => 3.1073, 'lng' => 101.6067],
-        'Bangsar' => ['lat' => 3.1305, 'lng' => 101.6711],
-        'KLCC' => ['lat' => 3.1578, 'lng' => 101.7123],
-        'Damansara' => ['lat' => 3.1478, 'lng' => 101.6158],
-        'Subang Jaya' => ['lat' => 3.0433, 'lng' => 101.5875],
-        'Shah Alam' => ['lat' => 3.0733, 'lng' => 101.5185],
-    ];
+    private function getCityCoordinates(): array
+    {
+        return config('locations.coordinates', []);
+    }
 
     /**
      * Restaurant scraper service
@@ -79,13 +77,15 @@ class ScrapeRestaurantsCommand extends Command
     public function handle(): int
     {
         $source = $this->option('source');
-        $area = $this->option('area');
+        $areas = $this->option('area');
         $radius = (int) $this->option('radius');
         $limit = (int) $this->option('limit');
+        $batchSize = (int) $this->option('batch-size');
         $isDryRun = $this->option('dry-run');
+        $showProgress = $this->option('show-progress');
+        $removeDuplicates = $this->option('no-duplicates');
 
-        $this->info("🍜 MakanGuru Restaurant Scraper");
-        $this->newLine();
+        $this->displayHeader();
 
         // Validate source
         if (!in_array($source, ['overpass', 'manual'], true)) {
@@ -93,46 +93,256 @@ class ScrapeRestaurantsCommand extends Command
             return Command::FAILURE;
         }
 
-        // Get coordinates for area
-        $coordinates = $this->getCoordinates($area);
-        if ($coordinates === null) {
-            $this->error("Unknown area: {$area}. Available: " . implode(', ', array_keys(self::CITY_COORDINATES)));
+        // Get locations to scrape
+        $locations = $this->getLocations($areas);
+        if (empty($locations)) {
+            $this->error("No valid areas specified. Available: " . implode(', ', array_keys($this->getCityCoordinates())));
+            $this->info("Use --area=all to scrape all cities, or specify one or more areas.");
             return Command::FAILURE;
         }
 
-        $this->info("📍 Area: {$area}");
-        $this->info("🌍 Coordinates: {$coordinates['lat']}, {$coordinates['lng']}");
-        $this->info("📏 Radius: {$radius}m");
-        $this->info("🔢 Limit: {$limit}");
-        $this->newLine();
+        $this->displayConfiguration($locations, $radius, $limit, $batchSize, $isDryRun, $removeDuplicates);
 
-        // Scrape based on source
-        $restaurants = match ($source) {
-            'overpass' => $this->scrapeFromOverpass($coordinates, $radius, $limit),
-            'manual' => $this->scrapeManualData($area, $limit),
-            default => [],
-        };
+        // Scrape restaurants
+        $restaurants = $this->scrapeRestaurants($source, $locations, $radius, $limit, $showProgress);
 
         if (empty($restaurants)) {
             $this->warn('No restaurants found.');
             return Command::SUCCESS;
         }
 
-        $this->info("✅ Found {$this->count($restaurants)} restaurants");
+        $this->newLine();
+        $this->info("✅ Total restaurants fetched: " . $this->count($restaurants));
+
+        // Remove duplicates if requested
+        if ($removeDuplicates) {
+            $originalCount = count($restaurants);
+            $restaurants = $this->scraperService->removeDuplicates($restaurants);
+            $removed = $originalCount - count($restaurants);
+            $this->info("🔄 Removed {$removed} duplicate(s). Unique restaurants: " . count($restaurants));
+        }
+
         $this->newLine();
 
-        // Display results
+        // Display preview
         $this->displayResults($restaurants);
 
         // Save to database (unless dry-run)
         if (!$isDryRun) {
-            $saved = $this->saveToDatabase($restaurants);
-            $this->info("💾 Saved {$saved} restaurants to database");
+            $this->saveBatchToDatabase($restaurants, $batchSize, $showProgress);
         } else {
             $this->warn('🔍 Dry-run mode: No data saved to database');
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Display command header
+     *
+     * @return void
+     */
+    private function displayHeader(): void
+    {
+        $this->info("🍜 MakanGuru Restaurant Scraper - Batch Mode");
+        $this->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->newLine();
+    }
+
+    /**
+     * Get locations to scrape based on area option
+     *
+     * @param array<int, string> $areas
+     * @return array<int, array{lat: float, lng: float, name: string}>
+     */
+    private function getLocations(array $areas): array
+    {
+        // If "all" is specified, use all cities
+        if (in_array('all', $areas, true)) {
+            return $this->getAllLocations();
+        }
+
+        // If no areas specified, return empty
+        if (empty($areas)) {
+            return [];
+        }
+
+        // Build locations array from specified areas
+        $coordinates = $this->getCityCoordinates();
+        $locations = [];
+
+        foreach ($areas as $area) {
+            if (isset($coordinates[$area])) {
+                $locations[] = [
+                    'lat' => $coordinates[$area]['lat'],
+                    'lng' => $coordinates[$area]['lng'],
+                    'name' => $area,
+                ];
+            } else {
+                $this->warn("⚠️  Unknown area: {$area} (skipping)");
+            }
+        }
+
+        return $locations;
+    }
+
+    /**
+     * Get all available locations
+     *
+     * @return array<int, array{lat: float, lng: float, name: string}>
+     */
+    private function getAllLocations(): array
+    {
+        $coordinates = $this->getCityCoordinates();
+        $locations = [];
+
+        foreach ($coordinates as $name => $coords) {
+            $locations[] = [
+                'lat' => $coords['lat'],
+                'lng' => $coords['lng'],
+                'name' => $name,
+            ];
+        }
+
+        return $locations;
+    }
+
+    /**
+     * Display configuration summary
+     *
+     * @param array<int, array{lat: float, lng: float, name: string}> $locations
+     * @param int $radius
+     * @param int $limit
+     * @param int $batchSize
+     * @param bool $isDryRun
+     * @param bool $removeDuplicates
+     * @return void
+     */
+    private function displayConfiguration(
+        array $locations,
+        int $radius,
+        int $limit,
+        int $batchSize,
+        bool $isDryRun,
+        bool $removeDuplicates
+    ): void {
+        $this->info("📋 Configuration:");
+        $this->line("   Areas: " . implode(', ', array_column($locations, 'name')));
+        $this->line("   Locations: " . count($locations));
+        $this->line("   Radius: {$radius}m per location");
+        $this->line("   Limit: {$limit} restaurants per location");
+        $this->line("   Batch Size: {$batchSize} records per insert");
+        $this->line("   Estimated Max: " . (count($locations) * $limit) . " restaurants");
+        if ($isDryRun) {
+            $this->line("   Mode: 🔍 DRY RUN (no database changes)");
+        }
+        if ($removeDuplicates) {
+            $this->line("   Duplicates: Will be removed before saving");
+        }
+        $this->newLine();
+    }
+
+    /**
+     * Scrape restaurants from multiple locations
+     *
+     * @param string $source
+     * @param array<int, array{lat: float, lng: float, name: string}> $locations
+     * @param int $radius
+     * @param int $limit
+     * @param bool $showProgress
+     * @return array<int, array<string, mixed>>
+     */
+    private function scrapeRestaurants(
+        string $source,
+        array $locations,
+        int $radius,
+        int $limit,
+        bool $showProgress
+    ): array {
+        if ($source === 'manual') {
+            $this->warn('📝 Manual data scraping not yet implemented');
+            return [];
+        }
+
+        $this->info("🌐 Fetching from OpenStreetMap (Overpass API)...");
+        $this->newLine();
+
+        // Use batch fetch if multiple locations
+        if (count($locations) > 1) {
+            return $this->batchFetchFromOverpass($locations, $radius, $limit, $showProgress);
+        }
+
+        // Single location fetch
+        $location = $locations[0];
+        $this->info("📍 Fetching from: {$location['name']}");
+        return $this->scraperService->fetchFromOverpass(
+            $location['lat'],
+            $location['lng'],
+            $radius,
+            $limit
+        );
+    }
+
+    /**
+     * Batch fetch restaurants from multiple locations
+     *
+     * @param array<int, array{lat: float, lng: float, name: string}> $locations
+     * @param int $radius
+     * @param int $limit
+     * @param bool $showProgress
+     * @return array<int, array<string, mixed>>
+     */
+    private function batchFetchFromOverpass(
+        array $locations,
+        int $radius,
+        int $limit,
+        bool $showProgress
+    ): array {
+        $progressBar = null;
+        if ($showProgress) {
+            $progressBar = $this->output->createProgressBar(count($locations));
+            $progressBar->setFormat('verbose');
+        }
+
+        $callback = function (
+            int $current,
+            int $total,
+            string $locationName,
+            int $found,
+            ?string $error = null
+        ) use ($progressBar, $showProgress) {
+            if ($showProgress && $progressBar !== null) {
+                $progressBar->advance();
+                if ($error !== null) {
+                    $this->newLine();
+                    $this->error("   ✗ {$locationName}: {$error}");
+                } else {
+                    $this->newLine();
+                    $this->info("   ✓ {$locationName}: {$found} restaurants");
+                }
+            }
+        };
+
+        $result = $this->scraperService->fetchBatchFromOverpass(
+            $locations,
+            $radius,
+            $limit,
+            $callback
+        );
+
+        if ($progressBar !== null) {
+            $progressBar->finish();
+            $this->newLine();
+        }
+
+        $this->newLine();
+        $this->info("📊 Batch Summary:");
+        $this->line("   Total locations: {$result['total']}");
+        $this->line("   Successful: {$result['successful']}");
+        $this->line("   Failed: {$result['failed']}");
+        $this->line("   Restaurants found: " . count($result['restaurants']));
+
+        return $result['restaurants'];
     }
 
     /**
@@ -143,7 +353,8 @@ class ScrapeRestaurantsCommand extends Command
      */
     private function getCoordinates(string $area): ?array
     {
-        return self::CITY_COORDINATES[$area] ?? null;
+        $coordinates = $this->getCityCoordinates();
+        return $coordinates[$area] ?? null;
     }
 
     /**
@@ -220,7 +431,56 @@ class ScrapeRestaurantsCommand extends Command
     }
 
     /**
-     * Save restaurants to database
+     * Save restaurants to database in batches
+     *
+     * @param array<int, array<string, mixed>> $restaurants
+     * @param int $batchSize
+     * @param bool $showProgress
+     * @return void
+     */
+    private function saveBatchToDatabase(array $restaurants, int $batchSize, bool $showProgress): void
+    {
+        $this->info("💾 Saving to database...");
+        $this->newLine();
+
+        $progressBar = null;
+        if ($showProgress) {
+            $progressBar = $this->output->createProgressBar(count($restaurants));
+            $progressBar->setFormat('verbose');
+        }
+
+        $callback = function (int $current, int $total) use ($progressBar) {
+            if ($progressBar !== null) {
+                $progressBar->advance();
+            }
+        };
+
+        $stats = $this->scraperService->saveBatch($restaurants, $batchSize, $callback);
+
+        if ($progressBar !== null) {
+            $progressBar->finish();
+            $this->newLine();
+        }
+
+        $this->newLine();
+        $this->info("📊 Save Summary:");
+        $this->line("   Total: {$stats['total']}");
+        $this->line("   Saved: {$stats['saved']}");
+        $this->line("   Skipped (duplicates/invalid): {$stats['skipped']}");
+        $this->line("   Failed: {$stats['failed']}");
+        $this->newLine();
+
+        if ($stats['saved'] > 0) {
+            $this->info("✅ Successfully saved {$stats['saved']} restaurant(s) to database!");
+        }
+
+        if ($stats['failed'] > 0) {
+            $this->warn("⚠️  {$stats['failed']} restaurant(s) failed to save. Check logs for details.");
+        }
+    }
+
+    /**
+     * Save restaurants to database (legacy single-item method)
      *
      * @param array<int, array<string, mixed>> $restaurants
      * @return int Number of saved records

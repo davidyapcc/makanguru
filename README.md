@@ -317,8 +317,11 @@ php artisan makanguru:scrape --area="KLCC" --radius=5000 --limit=100
 php artisan makanguru:scrape --area="Kuala Lumpur" --radius=10000 --limit=200
 ```
 
-**Available Areas:**
-- Kuala Lumpur, Petaling Jaya, Bangsar, KLCC, Damansara, Subang Jaya, Shah Alam
+**Available Areas (48 locations):**
+- Central KL: Kuala Lumpur, KLCC, Bangsar, Bukit Bintang, Cheras, Sentul, Kepong, and more
+- Petaling District: Petaling Jaya, Damansara, Subang Jaya, Sunway, Puchong, and more
+- Popular Neighborhoods: Mont Kiara, Hartamas, Mid Valley, Pavilion, and more
+- See `config/locations.php` for the complete list of all 48 locations
 
 **Features:**
 - ✅ Real GPS coordinates from OpenStreetMap
@@ -448,8 +451,11 @@ See [docs/guides/RATE_LIMITING.md](docs/guides/RATE_LIMITING.md) for comprehensi
 * [x] **Phase 3:** Modern UI/UX with Livewire 3 ✅
 * [x] **Phase 4:** Production Deployment (AWS, Redis, Nginx) ✅
 * [x] **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser ✅
+* [x] **Phase 5.2:** Data Centralization (config/locations.php) ✅
 * [x] **Phase 6:** "Share Your Vibe" – Generate shareable social media cards ✅
-* [ ] **Phase 7:** User submissions (Community-led data)
+* [x] **Phase 7:** New Personas Enhancement (6 AI Personalities) ✅
+* [x] **Phase 7.1:** Intelligent AI Model Fallback ✅
+* [ ] **Phase 8:** User submissions (Community-led data)
 
 ---
 
@@ -684,6 +690,56 @@ Since we are prioritizing **OOP, Coding Standards (PSR-12), and Modern UX**, I h
 
 ---
 
+### **Phase 5.2: Data Centralization** ✅ COMPLETE
+
+*Goal: Centralize location data across all components for easier maintenance and consistency.*
+
+* [x] **Centralized Configuration**
+    * Created `config/locations.php` as single source of truth for all location data
+    * **48 locations** across Klang Valley with precise GPS coordinates
+    * **15 curated seeding locations** with optimal radius/limit settings
+    * **9 regional groupings** for better organization
+    * Eliminated duplicate location arrays across 3 components
+
+* [x] **Component Updates**
+    * Updated `ScrapeRestaurantsCommand`: Replaced `CITY_COORDINATES` constant with `config('locations.coordinates')`
+    * Updated `ScraperInterface`: Replaced `AREAS` constant with dynamic config access
+    * Updated `PlaceSeeder`: Replaced hardcoded array with config-based seeding
+
+* [x] **Benefits**
+    * Single source of truth - update locations in one place
+    * Type-safe configuration with proper PHP array structures
+    * Easy scalability - add new regions or locations effortlessly
+    * Flexible configs for seeding vs. scraping vs. UI display
+    * No duplication - eliminated 3 duplicate location arrays
+
+* [x] **Testing**
+    * CLI scraper verified with single and multiple areas
+    * Batch processing tested with 2+ locations
+    * Config accessible throughout application
+    * All 48 locations available in web UI dropdown
+
+**Configuration Structure:**
+```php
+// config/locations.php
+return [
+    'coordinates' => [
+        'Kuala Lumpur' => ['lat' => 3.1390, 'lng' => 101.6869],
+        // ... 47 more locations
+    ],
+    'seeder' => [
+        ['name' => 'Bangsar', 'radius' => 2000, 'limit' => 10],
+        // ... 14 more seeding configs
+    ],
+    'regions' => [
+        'Central Kuala Lumpur' => ['Kuala Lumpur', 'KLCC', ...],
+        // ... 8 more regions
+    ],
+];
+```
+
+---
+
 ## 🧪 Testing & Quality Assurance
 
 MakanGuru has comprehensive test coverage to ensure code quality and reliability.
@@ -823,7 +879,8 @@ resources/
 └── js/app.js                           # Alpine.js config
 
 config/
-└── chat.php                            # Chat & rate limiting config
+├── chat.php                            # Chat & rate limiting config
+└── locations.php                       # Centralized location data (48 Klang Valley coordinates)
 
 tests/Feature/
 └── ChatRateLimitTest.php               # Rate limiting tests
@@ -846,6 +903,7 @@ database/seeders/PlaceSeeder.php        # Real OpenStreetMap data (50-70 restaur
 ✅ **Phase 3:** Modern UI/UX (including Rate Limiting)
 ✅ **Phase 4:** Production Deployment
 ✅ **Phase 5:** OpenStreetMap Integration & Restaurant Database Browser
+✅ **Phase 5.2:** Data Centralization (48 locations in config/locations.php)
 ✅ **Phase 6:** Share Your Vibe - Social Media Cards (Enhanced UI & Instagram Support)
 ✅ **Phase 7:** New Personas Enhancement (6 Personas + Smart Features)
 ✅ **Phase 7.1:** Intelligent AI Model Fallback (Automatic OpenAI → Meta switching)

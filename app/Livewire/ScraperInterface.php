@@ -86,19 +86,14 @@ class ScraperInterface extends Component
     public ?string $successMessage = null;
 
     /**
-     * Available areas with coordinates
+     * Get location coordinates from config
      *
-     * @var array<string, array{lat: float, lng: float}>
+     * @return array<string, array{lat: float, lng: float}>
      */
-    private const AREAS = [
-        'Kuala Lumpur' => ['lat' => 3.1390, 'lng' => 101.6869],
-        'Petaling Jaya' => ['lat' => 3.1073, 'lng' => 101.6067],
-        'Bangsar' => ['lat' => 3.1305, 'lng' => 101.6711],
-        'KLCC' => ['lat' => 3.1578, 'lng' => 101.7123],
-        'Damansara' => ['lat' => 3.1478, 'lng' => 101.6158],
-        'Subang Jaya' => ['lat' => 3.0433, 'lng' => 101.5875],
-        'Shah Alam' => ['lat' => 3.0733, 'lng' => 101.5185],
-    ];
+    private function getLocationCoordinates(): array
+    {
+        return config('locations.coordinates', []);
+    }
 
     /**
      * Restaurant scraper service
@@ -148,7 +143,8 @@ class ScraperInterface extends Component
 
         try {
             // Get coordinates for selected area
-            $coordinates = self::AREAS[$this->selectedArea] ?? null;
+            $areas = $this->getLocationCoordinates();
+            $coordinates = $areas[$this->selectedArea] ?? null;
 
             if ($coordinates === null) {
                 throw new \Exception("Invalid area selected: {$this->selectedArea}");
@@ -241,7 +237,7 @@ class ScraperInterface extends Component
      */
     public function getAvailableAreas(): array
     {
-        return array_keys(self::AREAS);
+        return array_keys($this->getLocationCoordinates());
     }
 
     /**

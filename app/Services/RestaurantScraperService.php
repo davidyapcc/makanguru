@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Place;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,6 +28,11 @@ class RestaurantScraperService
      * Request timeout in seconds
      */
     private const TIMEOUT = 30;
+
+    /**
+     * Delay between batch requests in seconds (to respect API rate limits)
+     */
+    private const BATCH_DELAY_SECONDS = 2;
 
     /**
      * Fetch restaurants from OpenStreetMap via Overpass API
@@ -63,6 +70,64 @@ class RestaurantScraperService
             ]);
             return [];
         }
+    }
+
+    /**
+     * Fetch restaurants in batches from multiple locations
+     *
+     * @param array<int, array{lat: float, lng: float, name: string}> $locations
+     * @param int $radius Radius in meters
+     * @param int $limitPerLocation Maximum number of results per location
+     * @param callable|null $progressCallback Optional callback for progress updates
+     * @return array<string, array{total: int, successful: int, failed: int, restaurants: array<int, array<string, mixed>>}>
+     */
+    public function fetchBatchFromOverpass(
+        array $locations,
+        int $radius,
+        int $limitPerLocation,
+        ?callable $progressCallback = null
+    ): array {
+        $results = [
+            'total' => count($locations),
+            'successful' => 0,
+            'failed' => 0,
+            'restaurants' => [],
+        ];
+
+        foreach ($locations as $index => $location) {
+            try {
+                $restaurants = $this->fetchFromOverpass(
+                    $location['lat'],
+                    $location['lng'],
+                    $radius,
+                    $limitPerLocation
+                );
+
+                $results['restaurants'] = array_merge($results['restaurants'], $restaurants);
+                $results['successful']++;
+
+                if ($progressCallback !== null) {
+                    $progressCallback($index + 1, count($locations), $location['name'], count($restaurants));
+                }
+
+                // Rate limiting: Wait before next request
+                if ($index < count($locations) - 1) {
+                    sleep(self::BATCH_DELAY_SECONDS);
+                }
+            } catch (\Exception $e) {
+                $results['failed']++;
+                Log::error('Batch fetch failed for location', [
+                    'location' => $location['name'],
+                    'error' => $e->getMessage(),
+                ]);
+
+                if ($progressCallback !== null) {
+                    $progressCallback($index + 1, count($locations), $location['name'], 0, $e->getMessage());
+                }
+            }
+        }
+
+        return $results;
     }
 
     /**
@@ -392,5 +457,111 @@ OVERPASS;
         }
 
         return true;
+    }
+
+    /**
+     * Save restaurants to database in batches
+     *
+     * @param array<int, array<string, mixed>> $restaurants
+     * @param int $batchSize Number of records to insert per batch
+     * @param callable|null $progressCallback Optional callback for progress updates
+     * @return array<string, int> Statistics about the operation
+     */
+    public function saveBatch(
+        array $restaurants,
+        int $batchSize = 100,
+        ?callable $progressCallback = null
+    ): array {
+        $stats = [
+            'total' => count($restaurants),
+            'saved' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+        ];
+
+        // Process in batches
+        $batches = array_chunk($restaurants, $batchSize);
+
+        foreach ($batches as $batchIndex => $batch) {
+            try {
+                DB::transaction(function () use ($batch, &$stats, $progressCallback, $batchIndex, $batchSize) {
+                    foreach ($batch as $index => $restaurant) {
+                        try {
+                            // Validate data
+                            if (!$this->validateRestaurantData($restaurant)) {
+                                $stats['skipped']++;
+                                Log::warning('Invalid restaurant data', [
+                                    'name' => $restaurant['name'] ?? 'Unknown',
+                                ]);
+                                continue;
+                            }
+
+                            // Check for duplicates
+                            $exists = Place::where('name', $restaurant['name'])
+                                ->where('latitude', $restaurant['latitude'])
+                                ->where('longitude', $restaurant['longitude'])
+                                ->exists();
+
+                            if ($exists) {
+                                $stats['skipped']++;
+                                continue;
+                            }
+
+                            // Save to database
+                            Place::create($restaurant);
+                            $stats['saved']++;
+
+                            // Progress callback
+                            if ($progressCallback !== null) {
+                                $globalIndex = ($batchIndex * $batchSize) + $index + 1;
+                                $progressCallback($globalIndex, $stats['total']);
+                            }
+                        } catch (\Exception $e) {
+                            $stats['failed']++;
+                            Log::error('Failed to save restaurant in batch', [
+                                'name' => $restaurant['name'] ?? 'Unknown',
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+                });
+            } catch (\Exception $e) {
+                Log::error('Batch transaction failed', [
+                    'batch_index' => $batchIndex,
+                    'error' => $e->getMessage(),
+                ]);
+                $stats['failed'] += count($batch);
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Remove duplicate restaurants from an array
+     *
+     * @param array<int, array<string, mixed>> $restaurants
+     * @return array<int, array<string, mixed>>
+     */
+    public function removeDuplicates(array $restaurants): array
+    {
+        $unique = [];
+        $seen = [];
+
+        foreach ($restaurants as $restaurant) {
+            $key = sprintf(
+                '%s|%.6f|%.6f',
+                strtolower($restaurant['name'] ?? ''),
+                $restaurant['latitude'] ?? 0.0,
+                $restaurant['longitude'] ?? 0.0
+            );
+
+            if (!isset($seen[$key])) {
+                $unique[] = $restaurant;
+                $seen[$key] = true;
+            }
+        }
+
+        return $unique;
     }
 }

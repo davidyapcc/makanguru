@@ -10,6 +10,34 @@ use Illuminate\Support\Facades\Log;
 class PlaceSeeder extends Seeder
 {
     /**
+     * Get seeder locations from config with coordinates
+     *
+     * @return array<int, array{name: string, lat: float, lng: float, radius: int, limit: int}>
+     */
+    private function getSeederLocations(): array
+    {
+        $seederConfig = config('locations.seeder', []);
+        $coordinates = config('locations.coordinates', []);
+
+        $locations = [];
+
+        foreach ($seederConfig as $config) {
+            $name = $config['name'];
+            if (isset($coordinates[$name])) {
+                $locations[] = [
+                    'name' => $name,
+                    'lat' => $coordinates[$name]['lat'],
+                    'lng' => $coordinates[$name]['lng'],
+                    'radius' => $config['radius'],
+                    'limit' => $config['limit'],
+                ];
+            }
+        }
+
+        return $locations;
+    }
+
+    /**
      * Run the database seeds.
      *
      * This seeder fetches real restaurant data from OpenStreetMap
@@ -19,16 +47,9 @@ class PlaceSeeder extends Seeder
     {
         $this->command->info('🌍 Fetching real restaurant data from OpenStreetMap...');
 
-        // Define areas to scrape with coordinates and limits
-        $areasToScrape = [
-            ['name' => 'Bangsar', 'lat' => 3.1305, 'lng' => 101.6711, 'radius' => 2000, 'limit' => 10],
-            ['name' => 'KLCC', 'lat' => 3.1578, 'lng' => 101.7123, 'radius' => 2000, 'limit' => 10],
-            ['name' => 'Petaling Jaya', 'lat' => 3.1073, 'lng' => 101.6067, 'radius' => 3000, 'limit' => 10],
-            ['name' => 'Damansara', 'lat' => 3.1466, 'lng' => 101.6190, 'radius' => 2000, 'limit' => 10],
-            ['name' => 'Subang Jaya', 'lat' => 3.0478, 'lng' => 101.5866, 'radius' => 2000, 'limit' => 10],
-            ['name' => 'Bukit Bintang', 'lat' => 3.1466, 'lng' => 101.7103, 'radius' => 1500, 'limit' => 10],
-            ['name' => 'Shah Alam', 'lat' => 3.0738, 'lng' => 101.5183, 'radius' => 3000, 'limit' => 10],
-        ];
+        // Get areas from centralized config
+        // These are pre-configured with optimal radius and limit for seeding
+        $areasToScrape = $this->getSeederLocations();
 
         $scraper = new RestaurantScraperService();
         $totalImported = 0;
