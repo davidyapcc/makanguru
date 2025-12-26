@@ -173,7 +173,7 @@ docker compose ps
 # makanguru-nginx     Up 30 seconds       0.0.0.0:8080->80/tcp
 # makanguru-queue     Up 30 seconds
 # makanguru-redis     Up 30 seconds       0.0.0.0:6380->6379/tcp
-# makanguru-node      Up 30 seconds
+# (Node service only starts if --profile dev is used)
 ```
 
 ### Step 3: Initialize Application
@@ -188,11 +188,12 @@ This script will:
 1. ✅ Copy `.env.docker` to `.env` (if not exists)
 2. ✅ Generate Laravel application key
 3. ✅ Wait for MySQL to be ready
-4. ✅ Run database migrations and seeders
-5. ✅ Cache configuration, routes, and views
-6. ✅ Install Node.js dependencies
-7. ✅ Build frontend assets
-8. ✅ Set proper permissions
+4. ✅ Publish Livewire assets
+5. ✅ Run database migrations and seeders
+6. ✅ Cache configuration, routes, and views
+7. ✅ Install Node.js dependencies
+8. ✅ Build frontend assets
+9. ✅ Set proper permissions
 
 **Expected Output:**
 ```
@@ -250,11 +251,14 @@ Access your application at: http://localhost:8080
 ### Starting Your Development Session
 
 ```bash
-# Start all services
+# Start backend services
 docker compose up -d
 
-# Watch frontend assets for changes (optional)
-docker compose exec node npm run dev
+# OR: Start all services including Node.js (for frontend development)
+docker compose --profile dev up -d
+
+# Watch frontend assets for changes (requires node service running)
+docker compose logs -f node
 ```
 
 ### Stopping Your Development Session
@@ -344,16 +348,16 @@ FLUSHALL       # Clear all data
 
 ```bash
 # Install npm dependencies
-docker compose exec node npm install
+docker compose run --rm node npm install
 
-# Build assets for development
-docker compose exec node npm run dev
+# Start development server
+docker compose run --rm node npm run dev
 
 # Build assets for production
-docker compose exec node npm run build
+docker compose run --rm node npm run build
 
 # Watch for file changes
-docker compose exec node npm run dev -- --watch
+docker compose run --rm node npm run dev -- --watch
 ```
 
 ### MakanGuru-Specific Commands
@@ -687,7 +691,7 @@ docker compose exec mysql mysql -u makanguru -pmakanguru_secret makanguru -e "SH
 4. **Use Production-Optimized Images:**
    ```bash
    docker compose exec app php artisan optimize
-   docker compose exec node npm run build
+   docker compose run --rm node npm run build
    ```
 
 ---

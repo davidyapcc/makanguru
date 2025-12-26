@@ -116,7 +116,7 @@ services:
 
   # Node.js for Asset Compilation
   node:
-    image: node:20-alpine
+    image: node:24-alpine
     container_name: makanguru_node
     working_dir: /var/www/html
     volumes:

@@ -1114,7 +1114,7 @@ docker compose exec mysql mysql -u makanguru -pmakanguru_secret makanguru
 # Application Commands (Docker)
 docker compose exec app php artisan [command]
 docker compose exec app bash      # Access container shell
-docker compose exec node npm run build
+docker compose run --rm node npm run build
 ```
 
 #### Native Commands (Without Docker)
